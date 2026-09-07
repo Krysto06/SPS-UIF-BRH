@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+/* 🎨 Palette officielle de la Banque de la République d'Haïti */
+@theme {
+  --color-brh-primary: #1a365d;   /* Bleu marine */
+  --color-brh-secondary: #b8860b; /* Or */
+  --color-brh-bg: #f7fafc;        /* Gris clair (fond) */
+  --color-brh-surface: #ffffff;   /* Blanc (cartes) */
+  --color-brh-text: #2d3748;      /* Gris foncé (texte) */
+  --color-brh-success: #276749;   /* Vert */
+  --color-brh-danger: #9b2c2c;    /* Rouge */
+  --color-brh-warning: #c05621;   /* Orange */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-brh-bg);
+  font-family: var(--font-sans);
+}
