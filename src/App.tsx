@@ -1,9 +1,18 @@
 import { useState, type FormEvent } from 'react'
 
+// 👥 Liste des utilisateurs affichés dans le menu déroulant.
+//    Pour AJOUTER une personne : copie une ligne et change le nom + le rôle.
+const UTILISATEURS = [
+  { nom: 'Bolivar Ann Chrissy', role: 'Secrétaire' },
+  { nom: 'Dorsainvil Jimy', role: 'Cadre' },
+  { nom: 'Elien Kaprysky Krystofia', role: 'Cadre' },
+  { nom: 'Siguineau Wilbens', role: 'Cadre' },
+  { nom: "Unité d'Inclusion Financière", role: 'Directrice' },
+]
+
 // Code par défaut fourni par l'administrateur (PROVISOIRE — géré par Supabase plus tard)
 const CODE_PAR_DEFAUT = 'BRH2026'
 
-// Styles réutilisables (pour ne pas les réécrire partout)
 const champ =
   'w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-brh-text shadow-sm outline-none transition placeholder:text-gray-400 focus:border-brh-primary focus:ring-2 focus:ring-brh-primary/20'
 const bouton =
@@ -12,6 +21,7 @@ const label = 'mb-1.5 block text-sm font-medium text-brh-text'
 
 function App() {
   const [etape, setEtape] = useState<'connexion' | 'nouveauCode' | 'accueil'>('connexion')
+  const [modeAdmin, setModeAdmin] = useState(false) // false = liste, true = saisie manuelle (gestionnaire)
   const [nom, setNom] = useState('')
   const [code, setCode] = useState('')
   const [nouveauCode, setNouveauCode] = useState('')
@@ -22,7 +32,7 @@ function App() {
     e.preventDefault()
     setErreur('')
     if (nom.trim() === '') {
-      setErreur('Veuillez saisir votre nom.')
+      setErreur(modeAdmin ? 'Veuillez saisir votre nom.' : 'Veuillez sélectionner votre nom.')
       return
     }
     if (code === CODE_PAR_DEFAUT) {
@@ -48,10 +58,17 @@ function App() {
 
   function seDeconnecter() {
     setEtape('connexion')
+    setModeAdmin(false)
     setNom('')
     setCode('')
     setNouveauCode('')
     setConfirmation('')
+    setErreur('')
+  }
+
+  function basculerModeAdmin() {
+    setModeAdmin(!modeAdmin)
+    setNom('')
     setErreur('')
   }
 
@@ -60,7 +77,6 @@ function App() {
 
       {/* ───────── PANNEAU GAUCHE : identité BRH (ordinateur) ───────── */}
       <div className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-brh-primary to-[#0f2748] p-12 text-white md:flex">
-        {/* décor : cercles dorés discrets */}
         <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full border border-brh-secondary/20" />
         <div className="pointer-events-none absolute -bottom-28 -left-16 h-80 w-80 rounded-full border border-brh-secondary/10" />
 
@@ -83,14 +99,14 @@ function App() {
           </h2>
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/70">
             Suivez les actions, mesurez la performance et coordonnez les activités
-            de l'Unité — dans un espace unique, clair et sécurisé.
+            de l'UIF — dans un espace unique, clair et sécurisé.
           </p>
         </div>
 
         <p className="relative max-w-sm text-xs leading-relaxed text-white/50">
           Cet outil ne se substitue pas à Bitrix. Il vient en complément, comme
           instrument interne destiné à faciliter et à fluidifier le suivi des
-          activités de l'Unité.
+          activités de l'UIF.
         </p>
       </div>
 
@@ -98,7 +114,7 @@ function App() {
       <div className="flex items-center justify-center bg-brh-bg p-6 sm:p-12">
         <div className="w-full max-w-sm">
 
-          {/* En-tête compact (visible surtout sur téléphone) */}
+          {/* En-tête compact (téléphone) */}
           <div className="mb-8 text-center md:hidden">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-brh-secondary text-2xl">
               🏛️
@@ -117,19 +133,39 @@ function App() {
               <div>
                 <h2 className="text-xl font-bold text-brh-primary">Connexion</h2>
                 <p className="mt-1 text-sm text-brh-text/60">
-                  Accédez à votre espace de pilotage.
+                  {modeAdmin
+                    ? 'Accès réservé au gestionnaire de données.'
+                    : 'Sélectionnez votre nom pour accéder à votre espace.'}
                 </p>
               </div>
+
+              {/* Nom : liste déroulante OU saisie manuelle (gestionnaire) */}
               <div>
                 <label className={label}>Nom</label>
-                <input
-                  type="text"
-                  value={nom}
-                  onChange={(e) => setNom(e.target.value)}
-                  placeholder="Votre nom complet"
-                  className={champ}
-                />
+                {modeAdmin ? (
+                  <input
+                    type="text"
+                    value={nom}
+                    onChange={(e) => setNom(e.target.value)}
+                    placeholder="Nom du gestionnaire"
+                    className={champ}
+                  />
+                ) : (
+                  <select
+                    value={nom}
+                    onChange={(e) => setNom(e.target.value)}
+                    className={champ}
+                  >
+                    <option value="">— Sélectionnez votre nom —</option>
+                    {UTILISATEURS.map((u) => (
+                      <option key={u.nom} value={u.nom}>
+                        {u.nom} ({u.role})
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
+
               <div>
                 <label className={label}>Code d'accès</label>
                 <input
@@ -140,25 +176,37 @@ function App() {
                   className={champ}
                 />
               </div>
+
               {erreur && (
                 <p className="rounded-lg bg-brh-danger/10 px-3 py-2 text-sm text-brh-danger">
                   {erreur}
                 </p>
               )}
+
               <button type="submit" className={bouton}>Se connecter</button>
-              <p className="text-center text-xs text-brh-text/50">
-                Première connexion ? Utilisez le code fourni par l'administrateur.
-              </p>
+
+              <div className="space-y-2 text-center">
+                <p className="text-xs text-brh-text/50">
+                  Première connexion ? Utilisez le code fourni par l'administrateur.
+                </p>
+                <button
+                  type="button"
+                  onClick={basculerModeAdmin}
+                  className="text-xs font-medium text-brh-primary underline underline-offset-2 hover:text-brh-primary/80"
+                >
+                  {modeAdmin
+                    ? '← Revenir à la liste des utilisateurs'
+                    : 'Vous êtes le gestionnaire de données ? Connectez-vous ici'}
+                </button>
+              </div>
             </form>
           )}
 
-          {/* ÉCRAN 2 — Nouveau code (première connexion) */}
+          {/* ÉCRAN 2 — Nouveau code */}
           {etape === 'nouveauCode' && (
             <form onSubmit={definirNouveauCode} className="space-y-5">
               <div>
-                <h2 className="text-xl font-bold text-brh-primary">
-                  Choisissez votre code
-                </h2>
+                <h2 className="text-xl font-bold text-brh-primary">Choisissez votre code</h2>
                 <p className="mt-1 text-sm text-brh-text/60">
                   Pour votre sécurité, définissez un nouveau code personnel.
                 </p>
@@ -192,16 +240,14 @@ function App() {
             </form>
           )}
 
-          {/* ÉCRAN 3 — Accueil après connexion */}
+          {/* ÉCRAN 3 — Accueil */}
           {etape === 'accueil' && (
             <div className="space-y-5 text-center">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brh-success/10 text-2xl">
                 ✅
               </div>
               <div>
-                <h2 className="text-xl font-bold text-brh-primary">
-                  Bienvenue, {nom}
-                </h2>
+                <h2 className="text-xl font-bold text-brh-primary">Bienvenue, {nom}</h2>
                 <p className="mt-1 text-sm leading-relaxed text-brh-text/70">
                   Vous êtes connecté(e) au Système de Pilotage Stratégique interne.
                 </p>
