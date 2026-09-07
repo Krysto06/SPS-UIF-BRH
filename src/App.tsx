@@ -8,6 +8,7 @@ const UTILISATEURS = [
   { nom: 'Elien Kaprysky Krystofia', role: 'Cadre' },
   { nom: 'Siguineau Wilbens', role: 'Cadre' },
   { nom: "Unité d'Inclusion Financière", role: 'Directrice' },
+  { nom: 'Victor Ann Valery', role: 'Cadre' },
 ]
 
 // Code par défaut fourni par l'administrateur (PROVISOIRE — géré par Supabase plus tard)
