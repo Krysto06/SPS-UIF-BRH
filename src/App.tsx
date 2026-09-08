@@ -2,13 +2,13 @@ import { useState, type FormEvent } from 'react'
 import { TableauDeBord } from './TableauDeBord'
 
 const UTILISATEURS = [
+  { nom: 'Admin', role: 'Gestionnaire de données' },
   { nom: 'Bolivar Ann Chrissy', role: 'Secrétaire' },
   { nom: 'Dorsainvil Jimy', role: 'Cadre' },
   { nom: 'Elien Kaprysky Krystofia', role: 'Cadre' },
   { nom: "Unité d'Inclusion Financière", role: 'Directrice' },
   { nom: 'Siguineau Wilbens', role: 'Cadre' },
   { nom: 'Victor Ann Valery', role: 'Cadre' },
-  { nom: 'Admin', role: 'Gestionnaire de données' },
 ]
 
 const CODE_PAR_DEFAUT = 'BRH2026'
