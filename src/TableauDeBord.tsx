@@ -11,6 +11,8 @@ const MENU = [
   { id: 'tableau', label: 'Tableau de bord', icone: '📊' },
   { id: 'actions', label: 'Mes actions', icone: '✅' },
   { id: 'contribution', label: 'Contribution stratégique', icone: '🎯' },
+  { id: 'activites', label: 'Activités', icone: '📅' },
+  { id: 'veille', label: 'Veille', icone: '🔎' },
   { id: 'equipe', label: "Performance d'équipe", icone: '👥' },
   { id: 'rapports', label: 'Rapports', icone: '📄' },
 ]
