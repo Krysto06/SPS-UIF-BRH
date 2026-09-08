@@ -65,6 +65,7 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", onDeconnexion }: 
   const prenom = nom.split(' ')[0]
   const initiales = nom.split(' ').map((m) => m[0]).slice(0, 2).join('').toUpperCase()
   const inspiration = INSPIRATIONS[indexSemaine() % INSPIRATIONS.length]
+  const salutation = new Date().getHours() < 18 ? 'Bonjour' : 'Bonsoir'
 
   const score = 82
   const couleurScore = score < 50 ? '#E39B9B' : '#12355B' // rouge pâle sous 50 %
@@ -165,7 +166,7 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", onDeconnexion }: 
               </div>
 
               <div>
-                <h1 className="text-2xl font-bold text-brh-primary">Bonjour, {prenom}</h1>
+                <h1 className="text-2xl font-bold text-brh-primary">{salutation}, {prenom}</h1>
                 <p className="mt-1 text-sm text-brh-muted">Voici votre performance au sein de l'Unité d'Inclusion Financière.</p>
               </div>
 
