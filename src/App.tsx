@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { TableauDeBord } from './TableauDeBord'
 
 // 👥 Liste des utilisateurs affichés dans le menu déroulant.
 const UTILISATEURS = [
@@ -20,7 +21,7 @@ const bouton =
 const label = 'mb-1.5 block text-sm font-medium text-brh-text'
 
 function App() {
-  const [etape, setEtape] = useState<'connexion' | 'nouveauCode' | 'accueil'>('connexion')
+  const [etape, setEtape] = useState<'connexion' | 'nouveauCode' | 'accueil' | 'tableauDeBord'>('connexion')
   const [nom, setNom] = useState('')
   const [code, setCode] = useState('')
   const [nouveauCode, setNouveauCode] = useState('')
@@ -62,6 +63,10 @@ function App() {
     setNouveauCode('')
     setConfirmation('')
     setErreur('')
+  }
+
+  if (etape === 'tableauDeBord') {
+    return <TableauDeBord nom={nom} onDeconnexion={seDeconnecter} />
   }
 
   return (
@@ -239,7 +244,7 @@ function App() {
                   Vous êtes connecté(e) au Système de Pilotage Stratégique interne.
                 </p>
               </div>
-              <button className={bouton}>Accéder à mon tableau de bord</button>
+              <button onClick={() => setEtape('tableauDeBord')} className={bouton}>Accéder à mon tableau de bord</button>
               <button
                 onClick={seDeconnecter}
                 className="w-full rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-medium text-brh-text transition hover:bg-white"
