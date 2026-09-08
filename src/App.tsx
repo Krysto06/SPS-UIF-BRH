@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react'
 
 // 👥 Liste des utilisateurs affichés dans le menu déroulant.
-//    Pour AJOUTER une personne : copie une ligne et change le nom + le rôle.
 const UTILISATEURS = [
   { nom: 'Bolivar Ann Chrissy', role: 'Secrétaire' },
   { nom: 'Dorsainvil Jimy', role: 'Cadre' },
@@ -69,17 +68,32 @@ function App() {
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
 
-      {/* ───────── PANNEAU GAUCHE : identité BRH — style futuriste ───────── */}
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-[#0b1f3a] p-12 text-white md:flex">
-        {/* Dégradé de fond profond */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#0d2a52] via-[#0b1f3a] to-[#050d1c]" />
-        {/* Lueur dorée */}
+      {/* ───────── PANNEAU GAUCHE : identité BRH — logo + photo en fond ───────── */}
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-[#081428] p-12 text-white md:flex">
+        {/* Photo du bâtiment (fond, assombrie) */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage: 'url(/banque-brh.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.35,
+          }}
+        />
+        {/* Voile bleu nuit par-dessus la photo */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(to bottom right, rgba(13,42,82,.82), rgba(11,31,58,.9), rgba(5,13,28,.96))',
+          }}
+        />
+        {/* Lueurs */}
         <div className="pointer-events-none absolute -right-24 top-1/4 h-96 w-96 rounded-full bg-brh-secondary/20 blur-3xl" />
-        {/* Lueur bleue */}
         <div className="pointer-events-none absolute -left-24 bottom-0 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl" />
         {/* Grille technologique */}
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.14]"
+          className="pointer-events-none absolute inset-0 opacity-[0.12]"
           style={{
             backgroundImage:
               'linear-gradient(to right, rgba(184,134,11,.4) 1px, transparent 1px), linear-gradient(to bottom, rgba(184,134,11,.4) 1px, transparent 1px)',
@@ -92,10 +106,10 @@ function App() {
         <div className="pointer-events-none absolute -right-28 -top-28 h-72 w-72 rounded-full border border-brh-secondary/20" />
         <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full border border-brh-secondary/10" />
 
-        {/* Haut : identité */}
+        {/* Haut : logo + identité */}
         <div className="relative">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-brh-secondary/60 bg-white/5 text-3xl shadow-[0_0_35px_-5px_rgba(184,134,11,.55)] backdrop-blur-sm">
-            🏛️
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white p-2 shadow-[0_0_35px_-5px_rgba(184,134,11,.55)]">
+            <img src="/logo-brh.png" alt="Logo BRH" className="h-full w-full object-contain" />
           </div>
           <h1 className="mt-6 text-2xl font-bold leading-tight">
             Banque de la République d'Haïti
@@ -150,8 +164,8 @@ function App() {
 
           {/* En-tête compact (téléphone) */}
           <div className="mb-8 text-center md:hidden">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-brh-secondary text-2xl">
-              🏛️
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gray-200 bg-white p-2 shadow-sm">
+              <img src="/logo-brh.png" alt="Logo BRH" className="h-full w-full object-contain" />
             </div>
             <h1 className="mt-3 text-sm font-bold uppercase tracking-wide text-brh-primary">
               Banque de la République d'Haïti
