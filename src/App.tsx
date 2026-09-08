@@ -105,14 +105,11 @@ function App() {
         <div className="pointer-events-none absolute -right-28 -top-28 h-72 w-72 rounded-full border border-white/10" />
         <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full border border-white/5" />
 
-        {/* Haut : logo (fond blanc retiré) + identité */}
+        {/* Haut : logo (médaillon blanc net) + identité */}
         <div className="relative">
-          <img
-            src="/logo-brh.jpg"
-            alt="Logo BRH"
-            className="h-12 w-auto"
-            style={{ filter: 'invert(1)', mixBlendMode: 'screen' }}
-          />
+          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white p-2 shadow-lg">
+            <img src="/logo-brh.jpg" alt="Logo BRH" className="h-full w-full object-contain" />
+          </div>
           <h1 className="mt-5 text-xl font-bold leading-tight">
             Banque de la République d'Haïti
           </h1>
