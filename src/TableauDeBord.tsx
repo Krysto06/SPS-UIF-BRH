@@ -72,7 +72,7 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", onDeconnexion }: 
         />
       )}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col bg-gradient-to-b from-brh-primary to-[#0f2748] text-white transition-transform duration-300 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col bg-gradient-to-b from-brh-primary to-brh-deep text-white transition-transform duration-300 lg:static lg:translate-x-0 ${
           menuOuvert ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -130,11 +130,11 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", onDeconnexion }: 
       {/* ═══════════ ZONE PRINCIPALE ═══════════ */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Barre du haut */}
-        <header className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white/90 px-5 py-3 backdrop-blur">
+        <header className="sticky top-0 z-20 flex items-center justify-between border-b border-brh-border bg-white/90 px-5 py-3 backdrop-blur">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMenuOuvert(true)}
-              className="rounded-lg border border-gray-200 p-2 text-brh-text lg:hidden"
+              className="rounded-lg border border-brh-border p-2 text-brh-text lg:hidden"
               aria-label="Ouvrir le menu"
             >
               ☰
@@ -160,23 +160,23 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", onDeconnexion }: 
 
               {/* Performance trimestrielle (jauge) */}
               <div className="grid gap-4 lg:grid-cols-3">
-                <div className="flex items-center gap-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                <div className="flex items-center gap-6 rounded-2xl border border-brh-border bg-white p-6 shadow-sm">
                   <div className="relative shrink-0" style={{ height: 128, width: 128 }}>
                     <svg viewBox="0 0 128 128" className="h-32 w-32 -rotate-90">
                       <circle cx="64" cy="64" r={rayon} fill="none" stroke="#e2e8f0" strokeWidth="12" />
                       <circle
-                        cx="64" cy="64" r={rayon} fill="none" stroke="#1a365d" strokeWidth="12"
+                        cx="64" cy="64" r={rayon} fill="none" stroke="#12355B" strokeWidth="12"
                         strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset}
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <span className="text-3xl font-bold text-brh-primary">{score}%</span>
-                      <span className="text-[11px] text-brh-text/50">provisoire</span>
+                      <span className="text-[11px] text-brh-muted">provisoire</span>
                     </div>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-brh-text/70">Ma performance trimestrielle</p>
-                    <p className="mt-1 text-xs text-brh-text/50">Trimestre 2 · Avril–Juin 2026</p>
+                    <p className="mt-1 text-xs text-brh-muted">Trimestre 2 · Avril–Juin 2026</p>
                     <span className="mt-3 inline-block rounded-full bg-brh-warning/10 px-3 py-1 text-xs font-medium text-brh-warning">
                       En attente de validation
                     </span>
@@ -184,17 +184,17 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", onDeconnexion }: 
                 </div>
 
                 {/* Graphique */}
-                <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm lg:col-span-2">
+                <div className="rounded-2xl border border-brh-border bg-white p-6 shadow-sm lg:col-span-2">
                   <p className="text-sm font-medium text-brh-text/70">Évolution mensuelle</p>
                   <svg viewBox="0 0 300 100" className="mt-4 h-32 w-full" preserveAspectRatio="none">
-                    <path d={aire} fill="#1a365d" fillOpacity="0.08" />
-                    <polyline points={ligne} fill="none" stroke="#1a365d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d={aire} fill="#12355B" fillOpacity="0.08" />
+                    <polyline points={ligne} fill="none" stroke="#12355B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     {evolution.map((p, i) => {
                       const c = coord(p.v, i)
-                      return <circle key={p.s} cx={c.x} cy={c.y} r="3.5" fill="#1a365d" />
+                      return <circle key={p.s} cx={c.x} cy={c.y} r="3.5" fill="#12355B" />
                     })}
                   </svg>
-                  <div className="mt-2 flex justify-between px-1 text-xs text-brh-text/50">
+                  <div className="mt-2 flex justify-between px-1 text-xs text-brh-muted">
                     {evolution.map((p) => <span key={p.s}>{p.s}</span>)}
                   </div>
                 </div>
@@ -205,10 +205,10 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", onDeconnexion }: 
                 {stats.map((s) => (
                   <div
                     key={s.libelle}
-                    className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                    className="rounded-2xl border border-brh-border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                   >
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-medium uppercase tracking-wide text-brh-text/50">{s.libelle}</p>
+                      <p className="text-xs font-medium uppercase tracking-wide text-brh-muted">{s.libelle}</p>
                       <span className="text-lg">{s.icone}</span>
                     </div>
                     <p className="mt-2 text-3xl font-bold text-brh-primary">{s.valeur}</p>
@@ -233,7 +233,7 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", onDeconnexion }: 
                     return (
                       <div
                         key={a.titre}
-                        className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md"
+                        className="rounded-2xl border border-brh-border bg-white p-5 shadow-sm transition hover:shadow-md"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <p className="font-semibold text-brh-text">{a.titre}</p>
@@ -241,11 +241,11 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", onDeconnexion }: 
                             {st.label}
                           </span>
                         </div>
-                        <p className="mt-1 text-xs text-brh-text/50">{a.axe}</p>
+                        <p className="mt-1 text-xs text-brh-muted">{a.axe}</p>
                         <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-brh-bg">
                           <div className="h-full rounded-full bg-brh-primary" style={{ width: `${a.pct}%` }} />
                         </div>
-                        <div className="mt-2 flex items-center justify-between text-xs text-brh-text/50">
+                        <div className="mt-2 flex items-center justify-between text-xs text-brh-muted">
                           <span>{a.pct}%</span>
                           <span>Échéance : {a.echeance}</span>
                         </div>
