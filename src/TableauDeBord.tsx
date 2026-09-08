@@ -37,18 +37,20 @@ function Icone({ nom, className = 'h-5 w-5' }: { nom: string; className?: string
     case 'veille': return (<svg {...c}><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>)
     case 'equipe': return (<svg {...c}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>)
     case 'rapports': return (<svg {...c}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v5h5" /><path d="M8 13h8" /><path d="M8 17h8" /></svg>)
+    case 'semaine': return (<svg {...c}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>)
+    case 'evenements': return (<svg {...c}><path d="M12 2.5l2.7 5.6 6.1.5-4.6 4 1.4 6-5.6-3.3-5.6 3.3 1.4-6-4.6-4 6.1-.5z" /></svg>)
+    case 'performance': return (<svg {...c}><path d="M3 3v18h18" /><rect x="7" y="11" width="3" height="7" rx="0.5" /><rect x="12" y="7" width="3" height="11" rx="0.5" /><rect x="17" y="4" width="3" height="14" rx="0.5" /></svg>)
     default: return null
   }
 }
 
 const MENU = [
   { id: 'tableau', label: 'Tableau de bord' },
-  { id: 'actions', label: 'Mes actions' },
-  { id: 'contribution', label: 'Contribution stratégique' },
-  { id: 'activites', label: 'Activités' },
-  { id: 'veille', label: 'Veille' },
-  { id: 'equipe', label: "Performance d'équipe" },
-  { id: 'rapports', label: 'Rapports' },
+  { id: 'semaine', label: 'Ma semaine' },
+  { id: 'actions', label: 'Mes actions du trimestre' },
+  { id: 'activites', label: 'Activité' },
+  { id: 'evenements', label: "Événement de l'UIF" },
+  { id: 'performance', label: "Performance de l'UIF" },
 ]
 
 const STATUTS: Record<string, { label: string; cls: string }> = {
