@@ -67,50 +67,32 @@ function App() {
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
 
-      {/* ───────── PANNEAU GAUCHE ───────── */}
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-[#081428] p-10 text-white md:flex">
-        {/* Photo du bâtiment (fond) */}
+      {/* ───────── PANNEAU GAUCHE : sobre & institutionnel ───────── */}
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-brh-primary p-12 text-white md:flex">
+        {/* Photo du bâtiment, très discrète */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
             backgroundImage: 'url(/banque-brh.jpg)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            opacity: 0.35,
+            opacity: 0.14,
           }}
         />
-        {/* Voile bleu nuit */}
+        {/* Voile bleu marine uni */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
-            background:
-              'linear-gradient(to bottom right, rgba(13,42,82,.82), rgba(11,31,58,.9), rgba(5,13,28,.96))',
+            background: 'linear-gradient(to bottom, rgba(26,54,93,.9), rgba(15,39,72,.95))',
           }}
         />
-        {/* Lueurs bleues */}
-        <div className="pointer-events-none absolute -right-24 top-1/4 h-96 w-96 rounded-full bg-blue-500/15 blur-3xl" />
-        <div className="pointer-events-none absolute -left-24 bottom-0 h-80 w-80 rounded-full bg-blue-400/10 blur-3xl" />
-        {/* Grille bleue */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.18]"
-          style={{
-            backgroundImage:
-              'linear-gradient(to right, rgba(120,160,225,.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(120,160,225,.5) 1px, transparent 1px)',
-            backgroundSize: '46px 46px',
-            maskImage: 'radial-gradient(ellipse at 50% 40%, black 35%, transparent 75%)',
-            WebkitMaskImage: 'radial-gradient(ellipse at 50% 40%, black 35%, transparent 75%)',
-          }}
-        />
-        {/* Cercles « radar » (bleus) */}
-        <div className="pointer-events-none absolute -right-28 -top-28 h-72 w-72 rounded-full border border-white/10" />
-        <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full border border-white/5" />
 
-        {/* Haut : logo (médaillon blanc net) + identité */}
+        {/* Haut : logo + identité */}
         <div className="relative">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white p-2 shadow-lg">
+          <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-white p-2 shadow-md">
             <img src="/logo-brh.jpg" alt="Logo BRH" className="h-full w-full object-contain" />
           </div>
-          <h1 className="mt-5 text-xl font-bold leading-tight">
+          <h1 className="mt-6 text-xl font-bold leading-snug">
             Banque de la République d'Haïti
           </h1>
           <p className="mt-1 text-sm font-medium text-brh-secondary">
@@ -118,47 +100,25 @@ function App() {
           </p>
         </div>
 
-        {/* Milieu : accroche + petites cartes */}
-        <div className="relative">
-          <div className="h-px w-16 bg-gradient-to-r from-white/40 to-transparent" />
-          <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.2em] text-white/40">
-            Plateforme interne
-          </p>
-          <h2 className="mt-1 text-base font-semibold">
+        {/* Milieu : titre + phrase */}
+        <div className="relative max-w-sm">
+          <div className="mb-4 h-px w-12 bg-brh-secondary" />
+          <h2 className="text-base font-semibold">
             Système de Pilotage Stratégique interne
           </h2>
-          <p className="mt-2 max-w-xs text-xs leading-relaxed text-white/55">
-            Suivez les actions, mesurez la performance et coordonnez les activités
-            de l'UIF — dans un espace unique et sécurisé.
+          <p className="mt-3 text-sm leading-relaxed text-white/70">
+            Une plateforme institutionnelle pour suivre les actions, mesurer la
+            performance et coordonner les activités de l'Unité d'Inclusion Financière.
           </p>
-
-          <div className="mt-5 space-y-2">
-            {[
-              'Suivi stratégique en temps réel',
-              'Données centralisées et sécurisées',
-              'Rapports institutionnels automatisés',
-            ].map((item) => (
-              <div
-                key={item}
-                className="flex items-center gap-2.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-sm"
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-brh-secondary" />
-                <span className="text-xs text-white/85">{item}</span>
-              </div>
-            ))}
-          </div>
         </div>
 
-        {/* Bas : note + version */}
-        <div className="relative space-y-2">
-          <p className="max-w-xs text-[11px] leading-relaxed text-white/40">
+        {/* Bas : note + mentions */}
+        <div className="relative border-t border-white/10 pt-5 text-xs text-white/50">
+          <p className="leading-relaxed">
             Cet outil ne se substitue pas à Bitrix. Il vient en complément, comme
-            instrument interne destiné à faciliter le suivi des activités de l'UIF.
+            instrument interne destiné à faciliter le suivi des activités de l'Unité.
           </p>
-          <div className="flex items-center justify-between text-[11px] text-white/50">
-            <span>© BRH · Unité d'Inclusion Financière</span>
-            <span className="rounded-full border border-white/15 px-2 py-0.5">v1.0</span>
-          </div>
+          <p className="mt-3">© BRH · Unité d'Inclusion Financière · v1.0</p>
         </div>
       </div>
 
@@ -168,7 +128,7 @@ function App() {
 
           {/* En-tête compact (téléphone) */}
           <div className="mb-8 text-center md:hidden">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gray-200 bg-white p-2 shadow-sm">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg border border-gray-200 bg-white p-2 shadow-sm">
               <img src="/logo-brh.jpg" alt="Logo BRH" className="h-full w-full object-contain" />
             </div>
             <h1 className="mt-3 text-sm font-bold uppercase tracking-wide text-brh-primary">
