@@ -69,13 +69,32 @@ function App() {
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
 
-      {/* ───────── PANNEAU GAUCHE : identité BRH (ordinateur) ───────── */}
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-brh-primary to-[#0f2748] p-12 text-white md:flex">
-        <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full border border-brh-secondary/20" />
-        <div className="pointer-events-none absolute -bottom-28 -left-16 h-80 w-80 rounded-full border border-brh-secondary/10" />
+      {/* ───────── PANNEAU GAUCHE : identité BRH — style futuriste ───────── */}
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-[#0b1f3a] p-12 text-white md:flex">
+        {/* Dégradé de fond profond */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#0d2a52] via-[#0b1f3a] to-[#050d1c]" />
+        {/* Lueur dorée */}
+        <div className="pointer-events-none absolute -right-24 top-1/4 h-96 w-96 rounded-full bg-brh-secondary/20 blur-3xl" />
+        {/* Lueur bleue */}
+        <div className="pointer-events-none absolute -left-24 bottom-0 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl" />
+        {/* Grille technologique */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.14]"
+          style={{
+            backgroundImage:
+              'linear-gradient(to right, rgba(184,134,11,.4) 1px, transparent 1px), linear-gradient(to bottom, rgba(184,134,11,.4) 1px, transparent 1px)',
+            backgroundSize: '44px 44px',
+            maskImage: 'radial-gradient(ellipse at 50% 40%, black 35%, transparent 75%)',
+            WebkitMaskImage: 'radial-gradient(ellipse at 50% 40%, black 35%, transparent 75%)',
+          }}
+        />
+        {/* Cercles « radar » */}
+        <div className="pointer-events-none absolute -right-28 -top-28 h-72 w-72 rounded-full border border-brh-secondary/20" />
+        <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full border border-brh-secondary/10" />
 
+        {/* Haut : identité */}
         <div className="relative">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-brh-secondary text-3xl">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-brh-secondary/60 bg-white/5 text-3xl shadow-[0_0_35px_-5px_rgba(184,134,11,.55)] backdrop-blur-sm">
             🏛️
           </div>
           <h1 className="mt-6 text-2xl font-bold leading-tight">
@@ -86,8 +105,9 @@ function App() {
           </p>
         </div>
 
+        {/* Milieu : accroche + points forts */}
         <div className="relative">
-          <div className="h-px w-16 bg-brh-secondary" />
+          <div className="h-px w-20 bg-gradient-to-r from-brh-secondary to-transparent" />
           <h2 className="mt-5 text-xl font-semibold">
             Système de Pilotage Stratégique interne
           </h2>
@@ -95,13 +115,33 @@ function App() {
             Suivez les actions, mesurez la performance et coordonnez les activités
             de l'UIF — dans un espace unique, clair et sécurisé.
           </p>
+          <ul className="mt-6 space-y-2.5 text-sm text-white/80">
+            <li className="flex items-center gap-3">
+              <span className="h-1.5 w-1.5 rounded-full bg-brh-secondary" />
+              Suivi stratégique en temps réel
+            </li>
+            <li className="flex items-center gap-3">
+              <span className="h-1.5 w-1.5 rounded-full bg-brh-secondary" />
+              Données centralisées et sécurisées
+            </li>
+            <li className="flex items-center gap-3">
+              <span className="h-1.5 w-1.5 rounded-full bg-brh-secondary" />
+              Rapports institutionnels automatisés
+            </li>
+          </ul>
         </div>
 
-        <p className="relative max-w-sm text-xs leading-relaxed text-white/50">
-          Cet outil ne se substitue pas à Bitrix. Il vient en complément, comme
-          instrument interne destiné à faciliter et à fluidifier le suivi des
-          activités de l'UIF.
-        </p>
+        {/* Bas : note + version */}
+        <div className="relative space-y-3">
+          <p className="max-w-sm text-xs leading-relaxed text-white/40">
+            Cet outil ne se substitue pas à Bitrix. Il vient en complément, comme
+            instrument interne destiné à faciliter le suivi des activités de l'UIF.
+          </p>
+          <div className="flex items-center justify-between text-xs text-white/50">
+            <span>© BRH · Unité d'Inclusion Financière</span>
+            <span className="rounded-full border border-white/15 px-2 py-0.5">v1.0</span>
+          </div>
+        </div>
       </div>
 
       {/* ───────── PANNEAU DROIT : formulaire ───────── */}
