@@ -141,7 +141,7 @@ function App() {
                   <option value="">— Sélectionnez votre nom —</option>
                   {UTILISATEURS.map((u) => (
                     <option key={u.nom} value={u.nom}>
-                      {u.nom} ({u.role})
+                      {u.nom}
                     </option>
                   ))}
                 </select>
