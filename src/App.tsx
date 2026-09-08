@@ -102,7 +102,6 @@ function App() {
 
         {/* Milieu : titre + phrase */}
         <div className="relative max-w-sm">
-          <div className="mb-4 h-px w-12 bg-brh-secondary" />
           <h2 className="text-base font-semibold">
             Système de Pilotage Stratégique interne
           </h2>
