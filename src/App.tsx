@@ -9,6 +9,7 @@ const UTILISATEURS = [
   { nom: 'Siguineau Wilbens', role: 'Cadre' },
   { nom: "Unité d'Inclusion Financière", role: 'Directrice' },
   { nom: 'Victor Ann Valery', role: 'Cadre' },
+  { nom: 'Admin', role: 'Gestionnaire de données' },
 ]
 
 // Code par défaut fourni par l'administrateur (PROVISOIRE — géré par Supabase plus tard)
@@ -22,7 +23,6 @@ const label = 'mb-1.5 block text-sm font-medium text-brh-text'
 
 function App() {
   const [etape, setEtape] = useState<'connexion' | 'nouveauCode' | 'accueil'>('connexion')
-  const [modeAdmin, setModeAdmin] = useState(false) // false = liste, true = saisie manuelle (gestionnaire)
   const [nom, setNom] = useState('')
   const [code, setCode] = useState('')
   const [nouveauCode, setNouveauCode] = useState('')
@@ -33,7 +33,7 @@ function App() {
     e.preventDefault()
     setErreur('')
     if (nom.trim() === '') {
-      setErreur(modeAdmin ? 'Veuillez saisir votre nom.' : 'Veuillez sélectionner votre nom.')
+      setErreur('Veuillez sélectionner votre nom.')
       return
     }
     if (code === CODE_PAR_DEFAUT) {
@@ -59,17 +59,10 @@ function App() {
 
   function seDeconnecter() {
     setEtape('connexion')
-    setModeAdmin(false)
     setNom('')
     setCode('')
     setNouveauCode('')
     setConfirmation('')
-    setErreur('')
-  }
-
-  function basculerModeAdmin() {
-    setModeAdmin(!modeAdmin)
-    setNom('')
     setErreur('')
   }
 
@@ -134,37 +127,24 @@ function App() {
               <div>
                 <h2 className="text-xl font-bold text-brh-primary">Connexion</h2>
                 <p className="mt-1 text-sm text-brh-text/60">
-                  {modeAdmin
-                    ? 'Accès réservé au gestionnaire de données.'
-                    : 'Sélectionnez votre nom pour accéder à votre espace.'}
+                  Sélectionnez votre nom pour accéder à votre espace.
                 </p>
               </div>
 
-              {/* Nom : liste déroulante OU saisie manuelle (gestionnaire) */}
               <div>
                 <label className={label}>Nom</label>
-                {modeAdmin ? (
-                  <input
-                    type="text"
-                    value={nom}
-                    onChange={(e) => setNom(e.target.value)}
-                    placeholder="Nom du gestionnaire"
-                    className={champ}
-                  />
-                ) : (
-                  <select
-                    value={nom}
-                    onChange={(e) => setNom(e.target.value)}
-                    className={champ}
-                  >
-                    <option value="">— Sélectionnez votre nom —</option>
-                    {UTILISATEURS.map((u) => (
-                      <option key={u.nom} value={u.nom}>
-                        {u.nom} ({u.role})
-                      </option>
-                    ))}
-                  </select>
-                )}
+                <select
+                  value={nom}
+                  onChange={(e) => setNom(e.target.value)}
+                  className={champ}
+                >
+                  <option value="">— Sélectionnez votre nom —</option>
+                  {UTILISATEURS.map((u) => (
+                    <option key={u.nom} value={u.nom}>
+                      {u.nom} ({u.role})
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -186,20 +166,9 @@ function App() {
 
               <button type="submit" className={bouton}>Se connecter</button>
 
-              <div className="space-y-2 text-center">
-                <p className="text-xs text-brh-text/50">
-                  Première connexion ? Utilisez le code fourni par l'administrateur.
-                </p>
-                <button
-                  type="button"
-                  onClick={basculerModeAdmin}
-                  className="text-xs font-medium text-brh-primary underline underline-offset-2 hover:text-brh-primary/80"
-                >
-                  {modeAdmin
-                    ? '← Revenir à la liste des utilisateurs'
-                    : 'Vous êtes le gestionnaire de données ? Connectez-vous ici'}
-                </button>
-              </div>
+              <p className="text-center text-xs text-brh-text/50">
+                Première connexion ? Utilisez le code fourni par l'administrateur.
+              </p>
             </form>
           )}
 
