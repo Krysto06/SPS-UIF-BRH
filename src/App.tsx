@@ -5,13 +5,12 @@ const UTILISATEURS = [
   { nom: 'Bolivar Ann Chrissy', role: 'Secrétaire' },
   { nom: 'Dorsainvil Jimy', role: 'Cadre' },
   { nom: 'Elien Kaprysky Krystofia', role: 'Cadre' },
-  { nom: 'Siguineau Wilbens', role: 'Cadre' },
   { nom: "Unité d'Inclusion Financière", role: 'Directrice' },
+  { nom: 'Siguineau Wilbens', role: 'Cadre' },
   { nom: 'Victor Ann Valery', role: 'Cadre' },
   { nom: 'Admin', role: 'Gestionnaire de données' },
 ]
 
-// Code par défaut fourni par l'administrateur (PROVISOIRE — géré par Supabase plus tard)
 const CODE_PAR_DEFAUT = 'BRH2026'
 
 const champ =
@@ -68,9 +67,9 @@ function App() {
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
 
-      {/* ───────── PANNEAU GAUCHE : identité BRH — logo + photo en fond ───────── */}
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-[#081428] p-12 text-white md:flex">
-        {/* Photo du bâtiment (fond, assombrie) */}
+      {/* ───────── PANNEAU GAUCHE ───────── */}
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-[#081428] p-10 text-white md:flex">
+        {/* Photo du bâtiment (fond) */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
@@ -80,7 +79,7 @@ function App() {
             opacity: 0.35,
           }}
         />
-        {/* Voile bleu nuit par-dessus la photo */}
+        {/* Voile bleu nuit */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
@@ -88,70 +87,78 @@ function App() {
               'linear-gradient(to bottom right, rgba(13,42,82,.82), rgba(11,31,58,.9), rgba(5,13,28,.96))',
           }}
         />
-        {/* Lueurs */}
-        <div className="pointer-events-none absolute -right-24 top-1/4 h-96 w-96 rounded-full bg-brh-secondary/20 blur-3xl" />
-        <div className="pointer-events-none absolute -left-24 bottom-0 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl" />
-        {/* Grille technologique */}
+        {/* Lueurs bleues */}
+        <div className="pointer-events-none absolute -right-24 top-1/4 h-96 w-96 rounded-full bg-blue-500/15 blur-3xl" />
+        <div className="pointer-events-none absolute -left-24 bottom-0 h-80 w-80 rounded-full bg-blue-400/10 blur-3xl" />
+        {/* Grille bleue */}
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.12]"
+          className="pointer-events-none absolute inset-0 opacity-[0.18]"
           style={{
             backgroundImage:
-              'linear-gradient(to right, rgba(184,134,11,.4) 1px, transparent 1px), linear-gradient(to bottom, rgba(184,134,11,.4) 1px, transparent 1px)',
-            backgroundSize: '44px 44px',
+              'linear-gradient(to right, rgba(120,160,225,.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(120,160,225,.5) 1px, transparent 1px)',
+            backgroundSize: '46px 46px',
             maskImage: 'radial-gradient(ellipse at 50% 40%, black 35%, transparent 75%)',
             WebkitMaskImage: 'radial-gradient(ellipse at 50% 40%, black 35%, transparent 75%)',
           }}
         />
-        {/* Cercles « radar » */}
-        <div className="pointer-events-none absolute -right-28 -top-28 h-72 w-72 rounded-full border border-brh-secondary/20" />
-        <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full border border-brh-secondary/10" />
+        {/* Cercles « radar » (bleus) */}
+        <div className="pointer-events-none absolute -right-28 -top-28 h-72 w-72 rounded-full border border-white/10" />
+        <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full border border-white/5" />
 
-        {/* Haut : logo + identité */}
+        {/* Haut : logo (fond blanc retiré) + identité */}
         <div className="relative">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white p-2 shadow-[0_0_35px_-5px_rgba(184,134,11,.55)]">
-            <img src="/logo-brh.jpg" alt="Logo BRH" className="h-full w-full object-contain" />
-          </div>
-          <h1 className="mt-6 text-2xl font-bold leading-tight">
+          <img
+            src="/logo-brh.jpg"
+            alt="Logo BRH"
+            className="h-12 w-auto"
+            style={{ filter: 'invert(1)', mixBlendMode: 'screen' }}
+          />
+          <h1 className="mt-5 text-xl font-bold leading-tight">
             Banque de la République d'Haïti
           </h1>
-          <p className="mt-1 font-medium text-brh-secondary">
+          <p className="mt-1 text-sm font-medium text-brh-secondary">
             Unité d'Inclusion Financière
           </p>
         </div>
 
-        {/* Milieu : accroche + points forts */}
+        {/* Milieu : accroche + petites cartes */}
         <div className="relative">
-          <div className="h-px w-20 bg-gradient-to-r from-brh-secondary to-transparent" />
-          <h2 className="mt-5 text-xl font-semibold">
+          <div className="h-px w-16 bg-gradient-to-r from-white/40 to-transparent" />
+          <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.2em] text-white/40">
+            Plateforme interne
+          </p>
+          <h2 className="mt-1 text-base font-semibold">
             Système de Pilotage Stratégique interne
           </h2>
-          <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/70">
+          <p className="mt-2 max-w-xs text-xs leading-relaxed text-white/55">
             Suivez les actions, mesurez la performance et coordonnez les activités
-            de l'UIF — dans un espace unique, clair et sécurisé.
+            de l'UIF — dans un espace unique et sécurisé.
           </p>
-          <ul className="mt-6 space-y-2.5 text-sm text-white/80">
-            <li className="flex items-center gap-3">
-              <span className="h-1.5 w-1.5 rounded-full bg-brh-secondary" />
-              Suivi stratégique en temps réel
-            </li>
-            <li className="flex items-center gap-3">
-              <span className="h-1.5 w-1.5 rounded-full bg-brh-secondary" />
-              Données centralisées et sécurisées
-            </li>
-            <li className="flex items-center gap-3">
-              <span className="h-1.5 w-1.5 rounded-full bg-brh-secondary" />
-              Rapports institutionnels automatisés
-            </li>
-          </ul>
+
+          <div className="mt-5 space-y-2">
+            {[
+              'Suivi stratégique en temps réel',
+              'Données centralisées et sécurisées',
+              'Rapports institutionnels automatisés',
+            ].map((item) => (
+              <div
+                key={item}
+                className="flex items-center gap-2.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-sm"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-brh-secondary" />
+                <span className="text-xs text-white/85">{item}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Bas : note + version */}
-        <div className="relative space-y-3">
-          <p className="max-w-sm text-xs leading-relaxed text-white/40">
+        <div className="relative space-y-2">
+          <p className="max-w-xs text-[11px] leading-relaxed text-white/40">
             Cet outil ne se substitue pas à Bitrix. Il vient en complément, comme
             instrument interne destiné à faciliter le suivi des activités de l'UIF.
           </p>
-          <div className="flex items-center justify-between text-xs text-white/50">
+          <div className="flex items-center justify-between text-[11px] text-white/50">
             <span>© BRH · Unité d'Inclusion Financière</span>
             <span className="rounded-full border border-white/15 px-2 py-0.5">v1.0</span>
           </div>
