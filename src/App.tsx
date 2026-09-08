@@ -109,7 +109,7 @@ function App() {
         {/* Haut : logo + identité */}
         <div className="relative">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white p-2 shadow-[0_0_35px_-5px_rgba(184,134,11,.55)]">
-            <img src="/logo-brh.png" alt="Logo BRH" className="h-full w-full object-contain" />
+            <img src="/logo-brh.jpg" alt="Logo BRH" className="h-full w-full object-contain" />
           </div>
           <h1 className="mt-6 text-2xl font-bold leading-tight">
             Banque de la République d'Haïti
@@ -165,7 +165,7 @@ function App() {
           {/* En-tête compact (téléphone) */}
           <div className="mb-8 text-center md:hidden">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gray-200 bg-white p-2 shadow-sm">
-              <img src="/logo-brh.png" alt="Logo BRH" className="h-full w-full object-contain" />
+              <img src="/logo-brh.jpg" alt="Logo BRH" className="h-full w-full object-contain" />
             </div>
             <h1 className="mt-3 text-sm font-bold uppercase tracking-wide text-brh-primary">
               Banque de la République d'Haïti
