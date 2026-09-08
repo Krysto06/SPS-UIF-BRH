@@ -96,8 +96,12 @@ function App() {
         </div>
 
         {/* Bas de page discret */}
-        <div className="absolute bottom-8 left-14 right-14 text-xs text-white/40">
-          © BRH · Unité d'Inclusion Financière · v1.0
+        <div className="absolute bottom-8 left-14 right-14 space-y-2 text-xs leading-relaxed text-white/40">
+          <p>
+            Cet outil ne remplace pas Bitrix. Il vient en complément, comme un moyen
+            simple de faciliter le suivi et le travail de l'Unité d'Inclusion Financière.
+          </p>
+          <p>© BRH · Unité d'Inclusion Financière · v1.0</p>
         </div>
       </div>
 
