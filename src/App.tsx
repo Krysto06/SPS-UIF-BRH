@@ -66,7 +66,8 @@ function App() {
   }
 
   if (etape === 'tableauDeBord') {
-    return <TableauDeBord nom={nom} onDeconnexion={seDeconnecter} />
+    const utilisateur = UTILISATEURS.find((u) => u.nom === nom)
+    return <TableauDeBord nom={nom} role={utilisateur?.role} onDeconnexion={seDeconnecter} />
   }
 
   return (
