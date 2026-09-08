@@ -10,7 +10,6 @@ const INSPIRATIONS: { type: 'citation' | 'fait'; texte: string; source: string }
   { type: 'fait', texte: "Haïti est la première république noire indépendante au monde, proclamée le 1er janvier 1804.", source: 'Le sais-tu ?' },
   { type: 'citation', texte: "Le secret de l'existence humaine ne consiste pas seulement à vivre, mais à trouver un motif de vivre.", source: 'Fiodor Dostoïevski' },
   { type: 'citation', texte: "On résiste à l'invasion des armées ; on ne résiste pas à l'invasion des idées.", source: 'Victor Hugo' },
-  { type: 'citation', texte: "Aimer, ce n'est pas se regarder l'un l'autre, c'est regarder ensemble dans la même direction.", source: 'Antoine de Saint-Exupéry' },
   { type: 'fait', texte: "La Banque de la République d'Haïti (BRH) est la banque centrale du pays ; elle a succédé en 1979 à la Banque Nationale de la République d'Haïti.", source: 'Le sais-tu ?' },
   { type: 'citation', texte: "Un pessimiste voit la difficulté dans chaque opportunité ; un optimiste voit l'opportunité dans chaque difficulté.", source: 'Winston Churchill' },
   { type: 'citation', texte: "La seule chose dont nous devons avoir peur, c'est la peur elle-même.", source: 'Franklin D. Roosevelt (1933)' },
@@ -156,7 +155,7 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", onDeconnexion }: 
           {pageActive === 'tableau' ? (
             <div className="space-y-6">
               {/* Bandeau inspiration de la semaine */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-brh-primary to-brh-deep p-5 text-white shadow-sm">
+              <div className="relative overflow-hidden rounded-2xl p-5 text-white shadow-sm" style={{ background: 'linear-gradient(to right, #12355B, #0B2545)' }}>
                 <span className="absolute right-4 top-2 text-6xl leading-none text-white/10">”</span>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brh-gold-light">
                   {inspiration.type === 'fait' ? 'Le sais-tu ?' : 'Citation de la semaine'}
