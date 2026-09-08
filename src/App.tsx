@@ -55,7 +55,7 @@ function App() {
     <div className="grid min-h-screen grid-cols-1 md:grid-cols-2">
 
       {/* ═══════ PANNEAU GAUCHE : identité, motifs subtils ═══════ */}
-      <div className="relative hidden flex-col justify-center overflow-hidden p-14 text-white md:flex">
+      <div className="relative hidden flex-col justify-start overflow-hidden p-14 pt-16 text-white md:flex">
         {/* Dégradé bleu institutionnel */}
         <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #12355B 0%, #0B2545 100%)' }} />
         {/* Motif géométrique très subtil (grille de points) */}
@@ -74,25 +74,42 @@ function App() {
 
         {/* Contenu (hiérarchie BRH → UIF → Système) */}
         <div className="relative max-w-md">
-          <div className="inline-flex items-center justify-center rounded-xl bg-white p-2 shadow-lg ring-1 ring-brh-secondary/40" style={{ height: 52, width: 52 }}>
-            <img src="/logo-brh.jpg" alt="Logo BRH" className="h-full w-full object-contain" />
-          </div>
+          {/* Logo (fond blanc retiré, rendu blanc) */}
+          <img
+            src="/logo-brh.jpg"
+            alt="Logo BRH"
+            style={{ height: 56, width: 'auto', filter: 'grayscale(1) invert(1) brightness(1.7)', mixBlendMode: 'screen' }}
+          />
 
-          <h1 className="mt-8 text-3xl font-bold leading-tight tracking-tight">
+          <h1 className="mt-6 text-3xl font-bold leading-tight tracking-tight">
             Banque de la République d'Haïti
           </h1>
           <p className="mt-2 text-lg font-medium text-brh-gold-light">
             Unité d'Inclusion Financière
           </p>
 
-          <div className="mt-8 h-px w-14 bg-brh-secondary/60" />
+          <div className="mt-6 h-px w-14 bg-brh-secondary/60" />
+
           <h2 className="mt-6 text-lg font-semibold text-white/95">
             Système de Pilotage Stratégique interne
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-white/60">
-            Suivre les actions, mesurer la performance et coordonner les activités
-            de l'Unité — dans un espace unique, clair et sécurisé.
+          <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/40">
+            Pourquoi cette plateforme ?
           </p>
+          <ul className="mt-3 space-y-3 text-sm text-white/70">
+            <li className="flex gap-3">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brh-secondary" />
+              Centraliser le suivi des actions et des engagements trimestriels
+            </li>
+            <li className="flex gap-3">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brh-secondary" />
+              Mesurer et faire valider la performance en toute transparence
+            </li>
+            <li className="flex gap-3">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brh-secondary" />
+              Relier le travail quotidien aux stratégies nationales (SNIF, PNEF, Plan BRH)
+            </li>
+          </ul>
         </div>
 
         {/* Bas de page discret */}
