@@ -1,19 +1,17 @@
 import { useState, useEffect, type ChangeEvent } from 'react'
 import { supabase } from '../supabase'
 
-// ── Styles réutilisés ──
 const champ =
   'w-full rounded-lg border border-brh-border bg-white px-4 py-2.5 text-sm text-brh-text outline-none transition placeholder:text-brh-muted/60 focus:border-brh-primary focus:ring-4 focus:ring-brh-primary/10'
 const label = 'mb-1.5 block text-xs font-semibold uppercase tracking-wide text-brh-muted'
 const zoneTexte = champ + ' min-h-[80px] resize-y leading-relaxed'
 const serif = { fontFamily: '"Fraunces", Georgia, "Times New Roman", serif' } as const
 
-// ── Utilitaires de dates ──
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
 
 function lundiDeLaSemaine(base = new Date()): Date {
   const d = new Date(base)
-  const j = d.getDay() // 0 = dimanche, 1 = lundi …
+  const j = d.getDay()
   const diff = j === 0 ? -6 : 1 - j
   d.setDate(d.getDate() + diff)
   d.setHours(0, 0, 0, 0)
@@ -34,7 +32,6 @@ function formatEnvoi(iso: string): string {
   return `${d.getDate()} ${MOIS[d.getMonth()]} à ${String(d.getHours()).padStart(2, '0')}h${String(d.getMinutes()).padStart(2, '0')}`
 }
 
-// 📏 Barème officiel d'avancement (base des calculs et graphiques)
 const BAREME: { v: number; label: string; desc: string }[] = [
   { v: 0, label: 'Pas encore commencée', desc: "rien d'entamé" },
   { v: 25, label: 'Démarrée', desc: 'travail engagé' },
@@ -58,7 +55,6 @@ function etapeCls(pct: number): string {
 
 type ActionSem = { id: string; nom: string; axe: string; echeance: string | null; echeanceFr: string; pct: number }
 
-// 🗓️ Page « Ma semaine » : actions choisies + rapports (lundi / vendredi) + documents
 export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom: string }) {
   const lundi = lundiDeLaSemaine()
   const semaineStr = isoDate(lundi)
@@ -85,8 +81,9 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
   const [avancements, setAvancements] = useState<Record<string, number>>({})
   const [envoi, setEnvoi] = useState<'debut' | 'fin' | null>(null)
 
-  const [emailDebut, setEmailDebut] = useState('')
-  const [emailFin, setEmailFin] = useState('')
+  // Emails : la direction reçoit le rapport ; le cadre peut se mettre en copie (facultatif)
+  const [emailDirection, setEmailDirection] = useState('')
+  const [emailMoi, setEmailMoi] = useState('')
 
   const [documents, setDocuments] = useState<{ nom: string; url: string }[]>([])
   const [uploadEnCours, setUploadEnCours] = useState(false)
@@ -148,11 +145,11 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
     setEnvoi(null)
     if (error) { setMsgDebut({ ok: false, t: 'Erreur : ' + error.message }); return }
     setDebutEnvoi(now)
-    if (emailDebut.trim()) {
-      composerEmail('debut', emailDebut.trim())
-      setMsgDebut({ ok: true, t: 'Rapport envoyé à la direction — une copie email vient de s\'ouvrir.' })
+    if (emailDirection.trim()) {
+      composerEmail('debut')
+      setMsgDebut({ ok: true, t: "Rapport enregistré dans l'espace direction — l'email vient de s'ouvrir, clique sur « Envoyer »." })
     } else {
-      setMsgDebut({ ok: true, t: "Rapport envoyé à la direction. (Ajoute l'email pour lui envoyer une copie.)" })
+      setMsgDebut({ ok: true, t: "Rapport enregistré dans l'espace direction. Ajoute l'email de la direction pour aussi l'envoyer par mail." })
     }
   }
 
@@ -174,10 +171,12 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
       supabase.from('actions').update({ pourcentage: avancements[a.id] ?? a.pct, updated_at: now }).eq('id', a.id)
     ))
     setEnvoi(null); setFinEnvoi(now)
-    if (emailFin.trim()) composerEmail('fin', emailFin.trim())
-    setMsgFin({ ok: true, t: emailFin.trim()
-      ? 'Rapport de fin envoyé — copie email ouverte. Avancement enregistré (en attente de validation).'
-      : "Rapport de fin envoyé. Avancement enregistré (en attente de validation). Ajoute l'email pour une copie." })
+    if (emailDirection.trim()) {
+      composerEmail('fin')
+      setMsgFin({ ok: true, t: "Rapport de fin enregistré — l'email vient de s'ouvrir, clique sur « Envoyer ». Avancement en attente de validation." })
+    } else {
+      setMsgFin({ ok: true, t: "Rapport de fin enregistré dans l'espace direction. Avancement en attente de validation. (Ajoute l'email de la direction pour l'envoyer par mail.)" })
+    }
   }
 
   async function ajouterDocument(e: ChangeEvent<HTMLInputElement>) {
@@ -200,7 +199,8 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
     await supabase.from('rapports').upsert({ user_id: utilisateurId, semaine_debut: semaineStr, documents: maj }, { onConflict: 'user_id,semaine_debut' })
   }
 
-  function composerEmail(type: 'debut' | 'fin', email: string) {
+  // Ouvre un email : destinataire = la direction, copie (CC) = le cadre s'il a mis son email
+  function composerEmail(type: 'debut' | 'fin') {
     const entete = [libelleSemaine(lundi), `Cadre : ${nom}`, '']
     let sujet = ''
     let lignes: string[] = []
@@ -219,7 +219,29 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
         `Recommandations : ${recommandations || '—'}`,
         '', 'Documents joints :', ...(documents.length ? documents.map((d) => ` - ${d.nom} : ${d.url}`) : [' - (aucun)'])]
     }
-    window.location.href = `mailto:${encodeURIComponent(email.trim())}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(lignes.join('\n'))}`
+    const cc = emailMoi.trim() ? `&cc=${encodeURIComponent(emailMoi.trim())}` : ''
+    window.location.href = `mailto:${encodeURIComponent(emailDirection.trim())}?subject=${encodeURIComponent(sujet)}${cc}&body=${encodeURIComponent(lignes.join('\n'))}`
+  }
+
+  // Bloc d'envoi commun aux deux fiches (email direction + ma copie + bouton)
+  function blocEnvoi(onEnvoyer: () => void, enCours: boolean) {
+    return (
+      <div className="space-y-3 border-t border-brh-border/70 pt-4">
+        <div>
+          <label className={label}>Email de la direction (destinataire)</label>
+          <input type="email" value={emailDirection} onChange={(e) => setEmailDirection(e.target.value)} placeholder="direction@brh.ht" className={champ} />
+        </div>
+        <div>
+          <label className={label}>Mon email — pour recevoir une copie (optionnel)</label>
+          <input type="email" value={emailMoi} onChange={(e) => setEmailMoi(e.target.value)} placeholder="ton.email@brh.ht" className={champ} />
+        </div>
+        <div className="flex justify-end">
+          <button onClick={onEnvoyer} disabled={enCours} className="rounded-lg bg-brh-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-brh-deep disabled:opacity-60">
+            {enCours ? 'Envoi…' : 'Envoyer à la direction'}
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -317,13 +339,7 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
               <textarea value={questions} onChange={(e) => setQuestions(e.target.value)} placeholder="Ce sur quoi j'ai besoin d'une réponse ou d'une décision…" className={zoneTexte} />
             </div>
             {msgDebut && <p className={`rounded-lg px-3 py-2 text-sm ${msgDebut.ok ? 'bg-brh-success/10 text-brh-success' : 'bg-brh-danger/10 text-brh-danger'}`}>{msgDebut.t}</p>}
-            <div className="border-t border-brh-border/70 pt-4">
-              <label className={label}>Email de la direction — pour recevoir la copie</label>
-              <input type="email" value={emailDebut} onChange={(e) => setEmailDebut(e.target.value)} placeholder="direction@brh.ht" className={champ} />
-              <div className="mt-3 flex justify-end">
-                <button onClick={envoyerDebut} disabled={envoi === 'debut'} className="rounded-lg bg-brh-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-brh-deep disabled:opacity-60">{envoi === 'debut' ? 'Envoi…' : 'Envoyer à la direction'}</button>
-              </div>
-            </div>
+            {blocEnvoi(envoyerDebut, envoi === 'debut')}
           </div>
         </section>
 
@@ -419,13 +435,7 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
             </div>
 
             {msgFin && <p className={`rounded-lg px-3 py-2 text-sm ${msgFin.ok ? 'bg-brh-success/10 text-brh-success' : 'bg-brh-danger/10 text-brh-danger'}`}>{msgFin.t}</p>}
-            <div className="border-t border-brh-border/70 pt-4">
-              <label className={label}>Email de la direction — pour recevoir la copie</label>
-              <input type="email" value={emailFin} onChange={(e) => setEmailFin(e.target.value)} placeholder="direction@brh.ht" className={champ} />
-              <div className="mt-3 flex justify-end">
-                <button onClick={envoyerFin} disabled={envoi === 'fin'} className="rounded-lg bg-brh-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-brh-deep disabled:opacity-60">{envoi === 'fin' ? 'Envoi…' : 'Envoyer à la direction'}</button>
-              </div>
-            </div>
+            {blocEnvoi(envoyerFin, envoi === 'fin')}
           </div>
         </section>
 
