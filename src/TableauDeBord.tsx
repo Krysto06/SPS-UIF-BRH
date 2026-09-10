@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent, type ChangeEvent } from 'react'
 import { supabase } from './supabase'
 
 type Props = { nom: string; role?: string; utilisateurId?: string; onDeconnexion: () => void }
@@ -359,20 +359,23 @@ function formatEnvoi(iso: string): string {
 
 const zoneTexte = champAdmin + ' min-h-[90px] resize-y leading-relaxed'
 
-type Prio = { id: string; nom: string; axe: string; echeanceFr: string; pct: number; cat: 'retard' | 'semaine' }
+type Prio = { id: string; nom: string; axe: string; echeanceFr: string; pct: number; statut: string; cat: 'retard' | 'semaine' }
 const TAGS_PRIO = {
   retard: { label: 'En retard', cls: 'bg-brh-danger/10 text-brh-danger' },
   semaine: { label: 'Cette semaine', cls: 'bg-brh-warning/10 text-brh-warning' },
 }
 
-// 🗓️ Page « Ma semaine » : priorités automatiques + rapports de début et de fin de semaine
+// 🗓️ Page « Ma semaine » : actions de la semaine + rapports (lundi / vendredi) + documents
 function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom: string }) {
   const lundi = lundiDeLaSemaine()
   const semaineStr = isoDate(lundi)
+  const jourSemaine = new Date().getDay() // 0 = dimanche, 1 = lundi … 5 = vendredi
+  const [apercu, setApercu] = useState(false)
+  const montrerDebut = jourSemaine === 1 || apercu
+  const montrerFin = jourSemaine === 5 || apercu
 
-  // Email de la direction (mémorisé sur cet ordinateur pour ne pas le retaper)
+  // Email de la direction (mémorisé sur cet ordinateur)
   const [emailDir, setEmailDir] = useState('')
-  const [msgEmail, setMsgEmail] = useState<string | null>(null)
   useEffect(() => {
     try { const e = localStorage.getItem('email_direction'); if (e) setEmailDir(e) } catch { /* ignore */ }
   }, [])
@@ -396,8 +399,12 @@ function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom: string
 
   // Avancement (%) des actions de la semaine, mis à jour dans le rapport de fin
   const [avancements, setAvancements] = useState<Record<string, number>>({})
-
   const [envoi, setEnvoi] = useState<'debut' | 'fin' | null>(null)
+
+  // Documents joints de la semaine
+  const [documents, setDocuments] = useState<{ nom: string; url: string }[]>([])
+  const [uploadEnCours, setUploadEnCours] = useState(false)
+  const [msgDoc, setMsgDoc] = useState<string | null>(null)
 
   useEffect(() => {
     if (!utilisateurId) { setChargement(false); return }
@@ -413,6 +420,7 @@ function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom: string
         setBesoinsAppui(data.besoins_appui ?? '')
         setRecommandations(data.recommandations ?? '')
         setFinEnvoi(data.fin_envoi ?? null)
+        setDocuments(Array.isArray(data.documents) ? data.documents : [])
       })
 
     const today = new Date(new Date().toDateString())
@@ -427,7 +435,7 @@ function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom: string
           if (ech < today) cat = 'retard'
           else if (ech <= dimanche) cat = 'semaine'
           if (!cat) continue
-          l.push({ id: a.id, nom: a.nom, axe: a.cadres_strategiques?.nom ?? '—', echeanceFr: a.echeance.split('-').reverse().join('/'), pct: a.pourcentage ?? 0, cat })
+          l.push({ id: a.id, nom: a.nom, axe: a.cadres_strategiques?.nom ?? '—', echeanceFr: a.echeance.split('-').reverse().join('/'), pct: a.pourcentage ?? 0, statut: a.statut ?? 'en_attente', cat })
         }
         setPrios(l)
         const av: Record<string, number> = {}
@@ -480,50 +488,79 @@ function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom: string
     setMsgFin({ ok: true, t: "Rapport de fin de semaine enregistré. Avancement des actions mis à jour." })
   }
 
-  function envoyerParEmail() {
-    setMsgEmail(null)
-    if (emailDir.trim() === '') { setMsgEmail("Saisis d'abord l'adresse email de la direction."); return }
+  async function ajouterDocument(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !utilisateurId) return
+    setUploadEnCours(true); setMsgDoc(null)
+    const chemin = `${utilisateurId}/${semaineStr}/${Date.now()}-${file.name}`
+    const { error } = await supabase.storage.from('documents').upload(chemin, file)
+    if (error) { setUploadEnCours(false); setMsgDoc('Erreur : ' + error.message); e.target.value = ''; return }
+    const url = supabase.storage.from('documents').getPublicUrl(chemin).data.publicUrl
+    const maj = [...documents, { nom: file.name, url }]
+    setDocuments(maj)
+    await supabase.from('rapports').upsert({ user_id: utilisateurId, semaine_debut: semaineStr, documents: maj }, { onConflict: 'user_id,semaine_debut' })
+    setUploadEnCours(false)
+    e.target.value = ''
+  }
+
+  async function retirerDocument(url: string) {
+    if (!utilisateurId) return
+    const maj = documents.filter((d) => d.url !== url)
+    setDocuments(maj)
+    await supabase.from('rapports').upsert({ user_id: utilisateurId, semaine_debut: semaineStr, documents: maj }, { onConflict: 'user_id,semaine_debut' })
+  }
+
+  function envoyerParEmail(type: 'debut' | 'fin', setMsg: (m: { ok: boolean; t: string } | null) => void) {
+    if (emailDir.trim() === '') { setMsg({ ok: false, t: "Saisis d'abord l'adresse email de la direction." }); return }
     try { localStorage.setItem('email_direction', emailDir.trim()) } catch { /* ignore */ }
-    const sujet = `Rapport de semaine — ${nom} — ${libelleSemaine(lundi)}`
-    const lignes = [
-      libelleSemaine(lundi),
-      `Cadre : ${nom}`,
-      '',
-      '— DÉBUT DE SEMAINE —',
-      `Sur quoi je travaille : ${travailPrevu || '—'}`,
-      `Questions : ${questions || '—'}`,
-      '',
-      '— FIN DE SEMAINE —',
-      `Réalisations : ${travauxRealises || '—'}`,
-      `Difficultés / contraintes : ${difficultes || '—'}`,
-      `Besoins d'appui : ${besoinsAppui || '—'}`,
-      `Recommandations : ${recommandations || '—'}`,
-      '',
-      'Avancement des actions de la semaine :',
-      ...(prios.length ? prios.map((p) => ` - ${p.nom} : ${avancements[p.id] ?? p.pct}%`) : [' - (aucune action ciblée)']),
-    ]
-    const corps = lignes.join('\n')
-    window.location.href = `mailto:${encodeURIComponent(emailDir.trim())}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`
+    const entete = [libelleSemaine(lundi), `Cadre : ${nom}`, '']
+    const docs = ['', 'Documents joints :', ...(documents.length ? documents.map((d) => ` - ${d.nom} : ${d.url}`) : [' - (aucun)'])]
+    let sujet = ''
+    let lignes: string[] = []
+    if (type === 'debut') {
+      sujet = `Rapport de début de semaine — ${nom} — ${libelleSemaine(lundi)}`
+      lignes = [...entete, '— DÉBUT DE SEMAINE —', `Sur quoi je travaille : ${travailPrevu || '—'}`, `Questions : ${questions || '—'}`, ...docs]
+    } else {
+      sujet = `Rapport de fin de semaine — ${nom} — ${libelleSemaine(lundi)}`
+      lignes = [
+        ...entete, '— FIN DE SEMAINE —',
+        `Réalisations : ${travauxRealises || '—'}`,
+        `Difficultés / contraintes : ${difficultes || '—'}`,
+        `Besoins d'appui : ${besoinsAppui || '—'}`,
+        `Recommandations : ${recommandations || '—'}`,
+        '', 'Avancement des actions de la semaine :',
+        ...(prios.length ? prios.map((p) => ` - ${p.nom} : ${avancements[p.id] ?? p.pct}%`) : [' - (aucune action ciblée)']),
+        ...docs,
+      ]
+    }
+    window.location.href = `mailto:${encodeURIComponent(emailDir.trim())}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(lignes.join('\n'))}`
   }
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-brh-primary">Ma semaine</h1>
-        <p className="mt-1 text-sm text-brh-muted">{libelleSemaine(lundi)}</p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-bold text-brh-primary">Ma semaine</h1>
+          <p className="mt-1 text-sm text-brh-muted">{libelleSemaine(lundi)}</p>
+        </div>
+        <button onClick={() => setApercu((v) => !v)}
+          className="rounded-lg border border-brh-border px-3 py-1.5 text-xs font-medium text-brh-muted transition hover:bg-brh-bg">
+          {apercu ? "Masquer l'aperçu" : 'Aperçu des fiches (test)'}
+        </button>
       </div>
 
-      {/* Priorités automatiques */}
+      {/* 1) Mes actions de la semaine (avec statut) */}
       <section className="rounded-2xl border border-brh-border bg-white p-6 shadow-sm">
-        <h3 className="text-sm font-semibold text-brh-primary">Priorités de la semaine</h3>
-        <p className="mt-0.5 text-xs text-brh-muted">Actions en retard ou à échéance cette semaine.</p>
+        <h3 className="text-sm font-semibold text-brh-primary">Mes actions de la semaine</h3>
+        <p className="mt-0.5 text-xs text-brh-muted">Actions en retard ou à échéance cette semaine, avec leur statut.</p>
         {chargement ? (
           <p className="mt-4 text-sm text-brh-muted">Chargement…</p>
         ) : prios.length === 0 ? (
-          <p className="mt-4 rounded-lg bg-brh-bg px-4 py-3 text-sm text-brh-muted">Rien d'urgent cette semaine. Bon travail 👏</p>
+          <p className="mt-4 rounded-lg bg-brh-bg px-4 py-3 text-sm text-brh-muted">Aucune action ciblée cette semaine. Bon travail 👏</p>
         ) : (
           <ul className="mt-4 space-y-2">
             {prios.map((p) => {
+              const st = STATUTS[p.statut]
               const tag = TAGS_PRIO[p.cat]
               return (
                 <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-brh-border bg-brh-bg/40 px-4 py-3">
@@ -531,7 +568,10 @@ function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom: string
                     <p className="truncate text-sm font-medium text-brh-text">{p.nom}</p>
                     <p className="text-xs text-brh-muted">{p.axe} · Échéance : {p.echeanceFr} · {p.pct}%</p>
                   </div>
-                  <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${tag.cls}`}>{tag.label}</span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${st.cls}`}>{st.label}</span>
+                    <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${tag.cls}`}>{tag.label}</span>
+                  </div>
                 </li>
               )
             })}
@@ -539,111 +579,144 @@ function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom: string
         )}
       </section>
 
-      {/* Rapport de début de semaine */}
-      <section className="rounded-2xl border border-brh-border bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-sm font-semibold text-brh-primary">Rapport de début de semaine</h3>
-          <div className="flex items-center gap-2">
-            <span className="rounded-full bg-brh-secondary/15 px-2.5 py-0.5 text-[11px] font-semibold text-brh-secondary">Obligatoire · Lundi</span>
-            {debutEnvoi && <span className="text-[11px] font-medium text-brh-success">✓ Soumis le {formatEnvoi(debutEnvoi)}</span>}
+      {/* 2) Rapport de début de semaine — chaque lundi */}
+      {montrerDebut ? (
+        <section className="rounded-2xl border border-brh-border bg-white p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold text-brh-primary">Rapport de début de semaine</h3>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-brh-secondary/15 px-2.5 py-0.5 text-[11px] font-semibold text-brh-secondary">Obligatoire · Lundi</span>
+              {debutEnvoi && <span className="text-[11px] font-medium text-brh-success">✓ Soumis le {formatEnvoi(debutEnvoi)}</span>}
+            </div>
           </div>
-        </div>
-        <div className="mt-4 space-y-4">
-          <div>
-            <label className={labelAdmin}>Sur quoi je vais travailler cette semaine</label>
-            <textarea value={travailPrevu} onChange={(e) => setTravailPrevu(e.target.value)} placeholder="Mes priorités et objectifs de la semaine…" className={zoneTexte} />
-          </div>
-          <div>
-            <label className={labelAdmin}>Mes questions / points à clarifier (optionnel)</label>
-            <textarea value={questions} onChange={(e) => setQuestions(e.target.value)} placeholder="Ce sur quoi j'ai besoin d'une réponse ou d'une décision…" className={zoneTexte} />
-          </div>
-          {msgDebut && (<p className={`rounded-lg px-3 py-2 text-sm ${msgDebut.ok ? 'bg-brh-success/10 text-brh-success' : 'bg-brh-danger/10 text-brh-danger'}`}>{msgDebut.t}</p>)}
-          <div className="flex justify-end">
-            <button onClick={envoyerDebut} disabled={envoi === 'debut'}
-              className="rounded-lg bg-brh-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-brh-deep disabled:opacity-60">
-              {envoi === 'debut' ? 'Enregistrement…' : debutEnvoi ? 'Mettre à jour' : 'Soumettre'}
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Rapport de fin de semaine */}
-      <section className="rounded-2xl border border-brh-border bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-sm font-semibold text-brh-primary">Rapport de fin de semaine</h3>
-          <div className="flex items-center gap-2">
-            <span className="rounded-full bg-brh-secondary/15 px-2.5 py-0.5 text-[11px] font-semibold text-brh-secondary">Obligatoire · Vendredi</span>
-            {finEnvoi && <span className="text-[11px] font-medium text-brh-success">✓ Soumis le {formatEnvoi(finEnvoi)}</span>}
-          </div>
-        </div>
-        <div className="mt-4 space-y-4">
-          <div>
-            <label className={labelAdmin}>Ce que j'ai accompli</label>
-            <textarea value={travauxRealises} onChange={(e) => setTravauxRealises(e.target.value)} placeholder="Les travaux réalisés cette semaine…" className={zoneTexte} />
-          </div>
-
-          {prios.length > 0 && (
+          <div className="mt-4 space-y-4">
             <div>
-              <label className={labelAdmin}>Avancement des actions de la semaine</label>
-              <p className="mb-2 text-xs text-brh-muted">Mets à jour le pourcentage atteint sur chaque action travaillée. Il sera enregistré à la soumission.</p>
-              <div className="space-y-4 rounded-lg border border-brh-border bg-brh-bg/40 p-4">
-                {prios.map((p) => (
-                  <div key={p.id}>
-                    <div className="mb-1 flex items-center justify-between text-xs">
-                      <span className="font-medium text-brh-text">{p.nom}</span>
-                      <span className="font-semibold text-brh-primary">{avancements[p.id] ?? p.pct}%</span>
-                    </div>
-                    <input type="range" min={0} max={100} step={5} value={avancements[p.id] ?? p.pct}
-                      onChange={(e) => setAvancements((prev) => ({ ...prev, [p.id]: Number(e.target.value) }))}
-                      className="w-full accent-brh-primary" />
-                  </div>
-                ))}
+              <label className={labelAdmin}>Sur quoi je vais travailler cette semaine</label>
+              <textarea value={travailPrevu} onChange={(e) => setTravailPrevu(e.target.value)} placeholder="Mes priorités et objectifs de la semaine…" className={zoneTexte} />
+            </div>
+            <div>
+              <label className={labelAdmin}>Mes questions / points à clarifier (optionnel)</label>
+              <textarea value={questions} onChange={(e) => setQuestions(e.target.value)} placeholder="Ce sur quoi j'ai besoin d'une réponse ou d'une décision…" className={zoneTexte} />
+            </div>
+            {msgDebut && (<p className={`rounded-lg px-3 py-2 text-sm ${msgDebut.ok ? 'bg-brh-success/10 text-brh-success' : 'bg-brh-danger/10 text-brh-danger'}`}>{msgDebut.t}</p>)}
+            <div className="border-t border-brh-border pt-4">
+              <label className={labelAdmin}>Adresse email de la direction (pour l'envoi)</label>
+              <input type="email" value={emailDir} onChange={(e) => setEmailDir(e.target.value)} placeholder="direction@brh.ht" className={champAdmin} />
+              <div className="mt-3 flex flex-wrap justify-end gap-3">
+                <button onClick={() => envoyerParEmail('debut', setMsgDebut)}
+                  className="rounded-lg border border-brh-primary px-5 py-2 text-sm font-semibold text-brh-primary transition hover:bg-brh-primary hover:text-white">
+                  Envoyer à la direction
+                </button>
+                <button onClick={envoyerDebut} disabled={envoi === 'debut'}
+                  className="rounded-lg bg-brh-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-brh-deep disabled:opacity-60">
+                  {envoi === 'debut' ? 'Enregistrement…' : debutEnvoi ? 'Mettre à jour' : 'Soumettre'}
+                </button>
               </div>
             </div>
-          )}
+          </div>
+        </section>
+      ) : (
+        <section className="rounded-2xl border border-dashed border-brh-border bg-white p-5 text-sm text-brh-muted">
+          Le <span className="font-medium text-brh-text">rapport de début de semaine</span> s'ouvre chaque <span className="font-medium">lundi</span>.
+        </section>
+      )}
 
-          <div className="grid gap-4 sm:grid-cols-2">
+      {/* 3) Rapport de fin de semaine — chaque vendredi */}
+      {montrerFin ? (
+        <section className="rounded-2xl border border-brh-border bg-white p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold text-brh-primary">Rapport de fin de semaine</h3>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-brh-secondary/15 px-2.5 py-0.5 text-[11px] font-semibold text-brh-secondary">Obligatoire · Vendredi</span>
+              {finEnvoi && <span className="text-[11px] font-medium text-brh-success">✓ Soumis le {formatEnvoi(finEnvoi)}</span>}
+            </div>
+          </div>
+          <div className="mt-4 space-y-4">
             <div>
-              <label className={labelAdmin}>Difficultés / contraintes (optionnel)</label>
-              <textarea value={difficultes} onChange={(e) => setDifficultes(e.target.value)} placeholder="Obstacles, contraintes, retards…" className={zoneTexte} />
+              <label className={labelAdmin}>Ce que j'ai accompli</label>
+              <textarea value={travauxRealises} onChange={(e) => setTravauxRealises(e.target.value)} placeholder="Les travaux réalisés cette semaine…" className={zoneTexte} />
+            </div>
+
+            {prios.length > 0 && (
+              <div>
+                <label className={labelAdmin}>Avancement des actions de la semaine</label>
+                <p className="mb-2 text-xs text-brh-muted">Mets à jour le pourcentage atteint sur chaque action travaillée. Il sera enregistré à la soumission.</p>
+                <div className="space-y-4 rounded-lg border border-brh-border bg-brh-bg/40 p-4">
+                  {prios.map((p) => (
+                    <div key={p.id}>
+                      <div className="mb-1 flex items-center justify-between text-xs">
+                        <span className="font-medium text-brh-text">{p.nom}</span>
+                        <span className="font-semibold text-brh-primary">{avancements[p.id] ?? p.pct}%</span>
+                      </div>
+                      <input type="range" min={0} max={100} step={5} value={avancements[p.id] ?? p.pct}
+                        onChange={(e) => setAvancements((prev) => ({ ...prev, [p.id]: Number(e.target.value) }))}
+                        className="w-full accent-brh-primary" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className={labelAdmin}>Difficultés / contraintes (optionnel)</label>
+                <textarea value={difficultes} onChange={(e) => setDifficultes(e.target.value)} placeholder="Obstacles, contraintes, retards…" className={zoneTexte} />
+              </div>
+              <div>
+                <label className={labelAdmin}>Besoins d'appui (optionnel)</label>
+                <textarea value={besoinsAppui} onChange={(e) => setBesoinsAppui(e.target.value)} placeholder="Ressources ou soutien nécessaires…" className={zoneTexte} />
+              </div>
             </div>
             <div>
-              <label className={labelAdmin}>Besoins d'appui (optionnel)</label>
-              <textarea value={besoinsAppui} onChange={(e) => setBesoinsAppui(e.target.value)} placeholder="Ressources ou soutien nécessaires…" className={zoneTexte} />
+              <label className={labelAdmin}>Recommandations pour la suite (optionnel)</label>
+              <textarea value={recommandations} onChange={(e) => setRecommandations(e.target.value)} placeholder="Propositions, points à porter à la direction…" className={zoneTexte} />
+            </div>
+            {msgFin && (<p className={`rounded-lg px-3 py-2 text-sm ${msgFin.ok ? 'bg-brh-success/10 text-brh-success' : 'bg-brh-danger/10 text-brh-danger'}`}>{msgFin.t}</p>)}
+            <div className="border-t border-brh-border pt-4">
+              <label className={labelAdmin}>Adresse email de la direction (pour l'envoi)</label>
+              <input type="email" value={emailDir} onChange={(e) => setEmailDir(e.target.value)} placeholder="direction@brh.ht" className={champAdmin} />
+              <div className="mt-3 flex flex-wrap justify-end gap-3">
+                <button onClick={() => envoyerParEmail('fin', setMsgFin)}
+                  className="rounded-lg border border-brh-primary px-5 py-2 text-sm font-semibold text-brh-primary transition hover:bg-brh-primary hover:text-white">
+                  Envoyer à la direction
+                </button>
+                <button onClick={envoyerFin} disabled={envoi === 'fin'}
+                  className="rounded-lg bg-brh-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-brh-deep disabled:opacity-60">
+                  {envoi === 'fin' ? 'Enregistrement…' : finEnvoi ? 'Mettre à jour' : 'Soumettre'}
+                </button>
+              </div>
             </div>
           </div>
-          <div>
-            <label className={labelAdmin}>Recommandations pour la suite (optionnel)</label>
-            <textarea value={recommandations} onChange={(e) => setRecommandations(e.target.value)} placeholder="Propositions, points à porter à la direction…" className={zoneTexte} />
-          </div>
-          {msgFin && (<p className={`rounded-lg px-3 py-2 text-sm ${msgFin.ok ? 'bg-brh-success/10 text-brh-success' : 'bg-brh-danger/10 text-brh-danger'}`}>{msgFin.t}</p>)}
-          <div className="flex justify-end">
-            <button onClick={envoyerFin} disabled={envoi === 'fin'}
-              className="rounded-lg bg-brh-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-brh-deep disabled:opacity-60">
-              {envoi === 'fin' ? 'Enregistrement…' : finEnvoi ? 'Mettre à jour' : 'Soumettre'}
-            </button>
-          </div>
-        </div>
-      </section>
+        </section>
+      ) : (
+        <section className="rounded-2xl border border-dashed border-brh-border bg-white p-5 text-sm text-brh-muted">
+          Le <span className="font-medium text-brh-text">rapport de fin de semaine</span> s'ouvre chaque <span className="font-medium">vendredi</span>.
+        </section>
+      )}
 
-      {/* Envoi facultatif à la direction par email */}
+      {/* 4) Documents de la semaine */}
       <section className="rounded-2xl border border-brh-border bg-white p-6 shadow-sm">
-        <h3 className="text-sm font-semibold text-brh-primary">Envoyer à la direction par email</h3>
-        <p className="mt-0.5 text-xs text-brh-muted">
-          Facultatif. La direction voit déjà tes rapports dans son espace. Tu peux en plus les transmettre par email : saisis l'adresse,
-          puis clique sur « Envoyer » — ton logiciel de messagerie s'ouvrira avec le rapport pré-rempli.
-        </p>
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
-          <div className="flex-1">
-            <label className={labelAdmin}>Adresse email de la direction</label>
-            <input type="email" value={emailDir} onChange={(e) => setEmailDir(e.target.value)} placeholder="direction@brh.ht" className={champAdmin} />
-          </div>
-          <button onClick={envoyerParEmail}
-            className="rounded-lg border border-brh-primary px-5 py-2.5 text-sm font-semibold text-brh-primary transition hover:bg-brh-primary hover:text-white">
-            Envoyer par email
-          </button>
+        <h3 className="text-sm font-semibold text-brh-primary">Documents de la semaine</h3>
+        <p className="mt-0.5 text-xs text-brh-muted">Ajoute des pièces jointes (rapports, tableaux, notes…). Elles sont incluses dans l'envoi à la direction.</p>
+
+        {documents.length > 0 && (
+          <ul className="mt-4 space-y-2">
+            {documents.map((d) => (
+              <li key={d.url} className="flex items-center justify-between gap-2 rounded-lg border border-brh-border bg-brh-bg/40 px-4 py-2.5">
+                <a href={d.url} target="_blank" rel="noreferrer" className="min-w-0 truncate text-sm font-medium text-brh-primary hover:underline">{d.nom}</a>
+                <button onClick={() => retirerDocument(d.url)} className="shrink-0 text-xs font-medium text-brh-danger hover:underline">Retirer</button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="mt-4">
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-brh-border px-4 py-2.5 text-sm font-medium text-brh-text transition hover:bg-brh-bg">
+            <input type="file" onChange={ajouterDocument} disabled={uploadEnCours} className="hidden" />
+            {uploadEnCours ? 'Téléversement…' : '+ Ajouter un document'}
+          </label>
+          {msgDoc && <p className="mt-3 rounded-lg bg-brh-danger/10 px-3 py-2 text-sm text-brh-danger">{msgDoc}</p>}
         </div>
-        {msgEmail && <p className="mt-3 rounded-lg bg-brh-danger/10 px-3 py-2 text-sm text-brh-danger">{msgEmail}</p>}
       </section>
     </div>
   )
