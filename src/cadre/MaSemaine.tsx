@@ -129,6 +129,12 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
   function ajouter(id: string) { if (id && !selection.includes(id)) majSelection([...selection, id]) }
   function retirer(id: string) { majSelection(selection.filter((x) => x !== id)) }
 
+  // Ajuster l'avancement d'une action (n'importe quel jour) — enregistré tout de suite
+  async function changerAvancement(id: string, val: number) {
+    setAvancements((prev) => ({ ...prev, [id]: val }))
+    if (utilisateurId) await supabase.from('actions').update({ pourcentage: val, updated_at: new Date().toISOString() }).eq('id', id)
+  }
+
   function tagSemaine(echeance: string | null) {
     if (echeance && new Date(echeance) < new Date(new Date().toDateString())) return { label: 'En retard', cls: 'bg-brh-danger/10 text-brh-danger' }
     return { label: 'Cette semaine', cls: 'bg-orange-50 text-brh-warning' }
@@ -279,31 +285,36 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
       {/* 1) Mes actions de la semaine */}
       <section className="rounded-2xl border border-brh-border bg-white p-6 shadow-sm">
         <h3 className="text-base font-semibold text-brh-primary" style={serif}>Mes actions de la semaine</h3>
-        <p className="mt-0.5 text-xs text-brh-muted">Ces actions apparaissent une fois ta fiche du lundi remplie. Fais défiler pour tout voir.</p>
+        <p className="mt-0.5 text-xs text-brh-muted">Ajuste l'avancement quand tu veux dans la semaine — c'est enregistré automatiquement.</p>
         {chargement ? (
           <p className="mt-4 text-sm text-brh-muted">Chargement…</p>
         ) : actionsSemaine.length === 0 ? (
           <p className="mt-4 rounded-lg bg-brh-bg px-4 py-3 text-sm text-brh-muted">Aucune action choisie. Remplis ta fiche du lundi pour définir tes actions de la semaine.</p>
         ) : (
-          <div className="mt-4 max-h-60 space-y-2 overflow-y-auto pr-1">
+          <div className="mt-4 max-h-80 space-y-3 overflow-y-auto pr-1">
             {actionsSemaine.map((a) => {
               const pct = avancements[a.id] ?? a.pct
               const et = etapeDe(pct)
               const ts = tagSemaine(a.echeance)
               return (
-                <div key={a.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brh-border/70 bg-brh-bg/40 px-4 py-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-brh-text">{a.nom}</p>
-                    <p className="text-xs text-brh-muted">{a.axe} · Échéance : {a.echeanceFr}</p>
+                <div key={a.id} className="rounded-xl border border-brh-border/70 bg-brh-bg/40 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-brh-text">{a.nom}</p>
+                      <p className="text-xs text-brh-muted">{a.axe} · Échéance : {a.echeanceFr}</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${etapeCls(pct)}`}>{et.label}</span>
+                      <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${ts.cls}`}>{ts.label}</span>
+                    </div>
                   </div>
-                  <div className="flex w-28 shrink-0 flex-col items-end gap-1.5">
-                    <span className="text-xs font-bold text-brh-primary">{pct} %</span>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-brh-bg"><div className="h-full rounded-full bg-brh-primary" style={{ width: `${pct}%` }} /></div>
+                  <div className="mt-3 flex items-center gap-3">
+                    <select value={pct} onChange={(e) => changerAvancement(a.id, Number(e.target.value))} className={`${champ} flex-1`}>
+                      {BAREME.map((b) => (<option key={b.v} value={b.v}>{b.label} ({b.v} %)</option>))}
+                    </select>
+                    <span className="w-12 shrink-0 text-right text-sm font-bold text-brh-primary">{pct} %</span>
                   </div>
-                  <div className="flex shrink-0 flex-col items-end gap-1.5">
-                    <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${etapeCls(pct)}`}>{et.label}</span>
-                    <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${ts.cls}`}>{ts.label}</span>
-                  </div>
+                  <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-brh-bg"><div className="h-full rounded-full bg-brh-primary transition-all" style={{ width: `${pct}%` }} /></div>
                 </div>
               )
             })}
