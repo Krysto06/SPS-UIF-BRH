@@ -89,13 +89,14 @@ export function Accueil({ nom, utilisateurId, onVoirActions }: { nom: string; ut
   return (
     <div className="space-y-6">
       {/* Bandeau inspiration de la semaine */}
-      <div className="relative overflow-hidden rounded-2xl p-5 text-white shadow-sm" style={{ background: 'linear-gradient(to right, #12355B, #0B2545)' }}>
-        <span className="absolute right-4 top-2 text-6xl leading-none text-white/10">”</span>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brh-gold-light">
-          {inspiration.type === 'fait' ? 'Le sais-tu ?' : 'Citation de la semaine'}
-        </p>
-        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/90 sm:text-base">« {inspiration.texte} »</p>
-        <p className="mt-2 text-xs font-medium text-brh-gold-light">— {inspiration.source}</p>
+      <div className="relative overflow-hidden rounded-xl px-4 py-3 text-white shadow-sm" style={{ background: 'linear-gradient(to right, #12355B, #0B2545)' }}>
+        <div className="flex items-baseline gap-2">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-brh-gold-light">
+            {inspiration.type === 'fait' ? 'Le sais-tu ?' : 'Citation'}
+          </span>
+          <span className="truncate text-[11px] text-brh-gold-light/80">— {inspiration.source}</span>
+        </div>
+        <p className="mt-1 max-w-3xl text-sm leading-snug text-white/90">« {inspiration.texte} »</p>
       </div>
 
       <div>
