@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from './supabase'
+import { supabase } from '../supabase'
 
 const serif = { fontFamily: '"Fraunces", Georgia, "Times New Roman", serif' } as const
 

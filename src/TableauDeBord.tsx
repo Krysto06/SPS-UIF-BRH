@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Accueil } from './Accueil'
-import { AttribuerAction } from './AttribuerAction'
-import { MaSemaine } from './MaSemaine'
-import { MesActions } from './MesActions'
+import { Accueil } from './cadre/Accueil'
+import { MaSemaine } from './cadre/MaSemaine'
+import { MesActions } from './cadre/MesActions'
+import { AttribuerAction } from './admin/AttribuerAction'
 
 type Props = { nom: string; role?: string; utilisateurId?: string; onDeconnexion: () => void }
 
