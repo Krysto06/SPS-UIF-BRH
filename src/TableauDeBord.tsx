@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from './supabase'
 
-type Props = { nom: string; role?: string; onDeconnexion: () => void }
+type Props = { nom: string; role?: string; utilisateurId?: string; onDeconnexion: () => void }
+type Action = { titre: string; axe: string; statut: string; pct: number; echeance: string }
 
 // 💬 Citations & faits — une par semaine (modifie librement cette liste)
 const INSPIRATIONS: { type: 'citation' | 'fait'; texte: string; source: string }[] = [
@@ -60,7 +62,7 @@ const STATUTS: Record<string, { label: string; cls: string }> = {
   bloque: { label: 'Bloqué', cls: 'bg-gray-200 text-gray-800' },
 }
 
-export function TableauDeBord({ nom, role = "Membre de l'UIF", onDeconnexion }: Props) {
+export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, onDeconnexion }: Props) {
   const [pageActive, setPageActive] = useState('tableau')
   const [menuOuvert, setMenuOuvert] = useState(false)
 
@@ -91,11 +93,26 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", onDeconnexion }: 
   const circ = 2 * Math.PI * rayon
   const offset = circ * (1 - score / 100)
 
-  const actions = [
-    { titre: 'Collecte de données', axe: 'SNIF · Domaine 6', statut: 'en_cours', pct: 75, echeance: '15/08/2026' },
-    { titre: 'Guide pédagogique', axe: 'PNEF · Axe 2', statut: 'termine', pct: 100, echeance: '01/07/2026' },
-    { titre: 'Rapport trimestriel', axe: 'Plan BRH · Objectif 3', statut: 'en_cours', pct: 90, echeance: '30/07/2026' },
-  ]
+  // 📥 Actions du cadre, lues depuis Supabase
+  const [actions, setActions] = useState<Action[]>([])
+  useEffect(() => {
+    if (!utilisateurId) return
+    supabase
+      .from('actions')
+      .select('nom, statut, pourcentage, echeance, cadres_strategiques(nom)')
+      .eq('user_id', utilisateurId)
+      .order('echeance')
+      .then(({ data }) => {
+        const liste = (data ?? []).map((a: any) => ({
+          titre: a.nom,
+          axe: a.cadres_strategiques?.nom ?? '—',
+          statut: a.statut,
+          pct: a.pourcentage ?? 0,
+          echeance: a.echeance ? a.echeance.split('-').reverse().join('/') : '',
+        }))
+        setActions(liste)
+      })
+  }, [utilisateurId])
 
   const titrePage = MENU.find((m) => m.id === pageActive)?.label ?? ''
 
@@ -227,6 +244,11 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", onDeconnexion }: 
                   <h3 className="text-sm font-semibold text-brh-primary">Mes actions récentes</h3>
                   <button onClick={() => setPageActive('actions')} className="text-xs font-medium text-brh-primary hover:underline">Tout voir →</button>
                 </div>
+                {actions.length === 0 && (
+                  <p className="rounded-2xl border border-dashed border-brh-border bg-white p-6 text-center text-sm text-brh-muted">
+                    Aucune action enregistrée pour le moment.
+                  </p>
+                )}
                 <div className="grid gap-4 md:grid-cols-3">
                   {actions.map((a) => {
                     const st = STATUTS[a.statut]

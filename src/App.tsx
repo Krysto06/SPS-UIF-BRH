@@ -2,7 +2,7 @@ import { useState, useEffect, type FormEvent } from 'react'
 import { TableauDeBord } from './TableauDeBord'
 import { supabase } from './supabase'
 
-type Utilisateur = { nom: string; role: string | null }
+type Utilisateur = { id: string; nom: string; role: string | null }
 
 const CODE_PAR_DEFAUT = 'BRH2026'
 
@@ -25,7 +25,7 @@ function App() {
   const [dbStatut, setDbStatut] = useState<'test' | 'ok' | 'erreur'>('test')
   const [dbErreur, setDbErreur] = useState('')
   useEffect(() => {
-    supabase.from('users').select('nom, role').order('nom').then(({ data, error }) => {
+    supabase.from('users').select('id, nom, role').order('nom').then(({ data, error }) => {
       if (error) { setDbStatut('erreur'); setDbErreur(error.message) }
       else { setUtilisateurs((data ?? []) as Utilisateur[]); setDbStatut('ok') }
     })
@@ -52,7 +52,7 @@ function App() {
 
   if (etape === 'tableauDeBord') {
     const utilisateur = utilisateurs.find((u) => u.nom === nom)
-    return <TableauDeBord nom={nom} role={utilisateur?.role ?? undefined} onDeconnexion={seDeconnecter} />
+    return <TableauDeBord nom={nom} role={utilisateur?.role ?? undefined} utilisateurId={utilisateur?.id} onDeconnexion={seDeconnecter} />
   }
 
   return (
