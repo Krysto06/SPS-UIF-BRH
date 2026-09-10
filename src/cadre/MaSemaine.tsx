@@ -1,5 +1,6 @@
 import { useState, useEffect, type ChangeEvent } from 'react'
 import { supabase } from '../supabase'
+import { telechargerRapportPdf, type RapportPdf } from '../pdf'
 
 const champ =
   'w-full rounded-lg border border-brh-border bg-white px-4 py-2.5 text-sm text-brh-text outline-none transition placeholder:text-brh-muted/60 focus:border-brh-primary focus:ring-4 focus:ring-brh-primary/10'
@@ -223,8 +224,19 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
     window.location.href = `mailto:${encodeURIComponent(emailDirection.trim())}?subject=${encodeURIComponent(sujet)}${cc}&body=${encodeURIComponent(lignes.join('\n'))}`
   }
 
-  // Bloc d'envoi commun aux deux fiches (email direction + ma copie + bouton)
-  function blocEnvoi(onEnvoyer: () => void, enCours: boolean) {
+  // Prépare les données du PDF à partir de l'état courant
+  function pdfData(type: 'debut' | 'fin'): RapportPdf {
+    const d = new Date()
+    const emisLe = `${d.getDate()}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} à ${String(d.getHours()).padStart(2, '0')}h${String(d.getMinutes()).padStart(2, '0')}`
+    return {
+      type, cadre: nom, semaine: libelleSemaine(lundi), emisLe,
+      actions: actionsSemaine.map((a) => { const p = avancements[a.id] ?? a.pct; return { nom: a.nom, axe: a.axe, etape: etapeDe(p).label, pct: p } }),
+      questions, realisations: travauxRealises, difficultes, besoins: besoinsAppui, recommandations, documents,
+    }
+  }
+
+  // Bloc d'envoi commun aux deux fiches (email direction + ma copie + boutons)
+  function blocEnvoi(onEnvoyer: () => void, enCours: boolean, type: 'debut' | 'fin') {
     return (
       <div className="space-y-3 border-t border-brh-border/70 pt-4">
         <div>
@@ -235,7 +247,10 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
           <label className={label}>Mon email — pour recevoir une copie (optionnel)</label>
           <input type="email" value={emailMoi} onChange={(e) => setEmailMoi(e.target.value)} placeholder="ton.email@brh.ht" className={champ} />
         </div>
-        <div className="flex justify-end">
+        <div className="flex flex-wrap justify-end gap-3">
+          <button onClick={() => telechargerRapportPdf(pdfData(type))} className="rounded-lg border border-brh-border bg-white px-4 py-2 text-sm font-semibold text-brh-text transition hover:bg-brh-bg">
+            Télécharger le PDF
+          </button>
           <button onClick={onEnvoyer} disabled={enCours} className="rounded-lg bg-brh-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-brh-deep disabled:opacity-60">
             {enCours ? 'Envoi…' : 'Envoyer à la direction'}
           </button>
@@ -339,7 +354,7 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
               <textarea value={questions} onChange={(e) => setQuestions(e.target.value)} placeholder="Ce sur quoi j'ai besoin d'une réponse ou d'une décision…" className={zoneTexte} />
             </div>
             {msgDebut && <p className={`rounded-lg px-3 py-2 text-sm ${msgDebut.ok ? 'bg-brh-success/10 text-brh-success' : 'bg-brh-danger/10 text-brh-danger'}`}>{msgDebut.t}</p>}
-            {blocEnvoi(envoyerDebut, envoi === 'debut')}
+            {blocEnvoi(envoyerDebut, envoi === 'debut', 'debut')}
           </div>
         </section>
 
@@ -435,7 +450,7 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
             </div>
 
             {msgFin && <p className={`rounded-lg px-3 py-2 text-sm ${msgFin.ok ? 'bg-brh-success/10 text-brh-success' : 'bg-brh-danger/10 text-brh-danger'}`}>{msgFin.t}</p>}
-            {blocEnvoi(envoyerFin, envoi === 'fin')}
+            {blocEnvoi(envoyerFin, envoi === 'fin', 'fin')}
           </div>
         </section>
 
