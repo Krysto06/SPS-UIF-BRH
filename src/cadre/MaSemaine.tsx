@@ -82,10 +82,6 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
   const [avancements, setAvancements] = useState<Record<string, number>>({})
   const [envoi, setEnvoi] = useState<'debut' | 'fin' | null>(null)
 
-  // Emails : la direction reçoit le rapport ; le cadre peut se mettre en copie (facultatif)
-  const [emailDirection, setEmailDirection] = useState('')
-  const [emailMoi, setEmailMoi] = useState('')
-
   const [documents, setDocuments] = useState<{ nom: string; url: string }[]>([])
   const [uploadEnCours, setUploadEnCours] = useState(false)
   const [msgDoc, setMsgDoc] = useState<string | null>(null)
@@ -152,12 +148,7 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
     setEnvoi(null)
     if (error) { setMsgDebut({ ok: false, t: 'Erreur : ' + error.message }); return }
     setDebutEnvoi(now)
-    if (emailDirection.trim()) {
-      composerEmail('debut')
-      setMsgDebut({ ok: true, t: "Rapport enregistré dans l'espace direction — l'email vient de s'ouvrir, clique sur « Envoyer »." })
-    } else {
-      setMsgDebut({ ok: true, t: "Rapport enregistré dans l'espace direction. Ajoute l'email de la direction pour aussi l'envoyer par mail." })
-    }
+    setMsgDebut({ ok: true, t: 'Rapport de début transmis à la direction (visible dans son espace).' })
   }
 
   async function envoyerFin() {
@@ -178,12 +169,7 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
       supabase.from('actions').update({ pourcentage: avancements[a.id] ?? a.pct, updated_at: now }).eq('id', a.id)
     ))
     setEnvoi(null); setFinEnvoi(now)
-    if (emailDirection.trim()) {
-      composerEmail('fin')
-      setMsgFin({ ok: true, t: "Rapport de fin enregistré — l'email vient de s'ouvrir, clique sur « Envoyer ». Avancement en attente de validation." })
-    } else {
-      setMsgFin({ ok: true, t: "Rapport de fin enregistré dans l'espace direction. Avancement en attente de validation. (Ajoute l'email de la direction pour l'envoyer par mail.)" })
-    }
+    setMsgFin({ ok: true, t: 'Rapport de fin transmis à la direction. Avancement proposé enregistré (en attente de validation).' })
   }
 
   async function ajouterDocument(e: ChangeEvent<HTMLInputElement>) {
@@ -206,30 +192,6 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
     await supabase.from('rapports').upsert({ user_id: utilisateurId, semaine_debut: semaineStr, documents: maj }, { onConflict: 'user_id,semaine_debut' })
   }
 
-  // Ouvre un email : destinataire = la direction, copie (CC) = le cadre s'il a mis son email
-  function composerEmail(type: 'debut' | 'fin') {
-    const entete = [libelleSemaine(lundi), `Cadre : ${nom}`, '']
-    let sujet = ''
-    let lignes: string[] = []
-    if (type === 'debut') {
-      sujet = `Rapport de début de semaine — ${nom} — ${libelleSemaine(lundi)}`
-      lignes = [...entete, '— DÉBUT DE SEMAINE —', 'Actions de la semaine :',
-        ...(actionsSemaine.length ? actionsSemaine.map((a) => ` - ${a.nom}`) : [' - (aucune)']),
-        '', `Questions : ${questions || '—'}`]
-    } else {
-      sujet = `Rapport de fin de semaine — ${nom} — ${libelleSemaine(lundi)}`
-      lignes = [...entete, '— FIN DE SEMAINE —', `Réalisations : ${travauxRealises || '—'}`,
-        '', 'Avancement proposé :',
-        ...(actionsSemaine.length ? actionsSemaine.map((a) => { const p = avancements[a.id] ?? a.pct; return ` - ${a.nom} : ${p}% (${etapeDe(p).label})` }) : [' - (aucune)']),
-        '', `Difficultés / contraintes : ${difficultes || '—'}`,
-        `Besoins d'appui : ${besoinsAppui || '—'}`,
-        `Recommandations : ${recommandations || '—'}`,
-        '', 'Documents joints :', ...(documents.length ? documents.map((d) => ` - ${d.nom} : ${d.url}`) : [' - (aucun)'])]
-    }
-    const cc = emailMoi.trim() ? `&cc=${encodeURIComponent(emailMoi.trim())}` : ''
-    window.location.href = `mailto:${encodeURIComponent(emailDirection.trim())}?subject=${encodeURIComponent(sujet)}${cc}&body=${encodeURIComponent(lignes.join('\n'))}`
-  }
-
   // Prépare les données du PDF à partir de l'état courant
   function pdfData(type: 'debut' | 'fin'): RapportPdf {
     const d = new Date()
@@ -241,26 +203,16 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
     }
   }
 
-  // Bloc d'envoi commun aux deux fiches (email direction + ma copie + boutons)
+  // Bloc d'envoi commun aux deux fiches (télécharger le PDF + envoyer à la direction)
   function blocEnvoi(onEnvoyer: () => void, enCours: boolean, type: 'debut' | 'fin') {
     return (
-      <div className="space-y-3 border-t border-brh-border/70 pt-4">
-        <div>
-          <label className={label}>Email de la direction (destinataire)</label>
-          <input type="email" value={emailDirection} onChange={(e) => setEmailDirection(e.target.value)} placeholder="direction@brh.ht" className={champ} />
-        </div>
-        <div>
-          <label className={label}>Mon email — pour recevoir une copie (optionnel)</label>
-          <input type="email" value={emailMoi} onChange={(e) => setEmailMoi(e.target.value)} placeholder="ton.email@brh.ht" className={champ} />
-        </div>
-        <div className="flex flex-wrap justify-end gap-3">
-          <button onClick={() => telechargerRapportPdf(pdfData(type))} className="rounded-lg border border-brh-border bg-white px-4 py-2 text-sm font-semibold text-brh-text transition hover:bg-brh-bg">
-            Télécharger le PDF
-          </button>
-          <button onClick={onEnvoyer} disabled={enCours} className="rounded-lg bg-brh-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-brh-deep disabled:opacity-60">
-            {enCours ? 'Envoi…' : 'Envoyer à la direction'}
-          </button>
-        </div>
+      <div className="flex flex-wrap items-center justify-end gap-3 border-t border-brh-border/70 pt-4">
+        <button onClick={() => telechargerRapportPdf(pdfData(type))} className="rounded-lg border border-brh-border bg-white px-4 py-2 text-sm font-semibold text-brh-text transition hover:bg-brh-bg">
+          Télécharger le PDF
+        </button>
+        <button onClick={onEnvoyer} disabled={enCours} className="rounded-lg bg-brh-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-brh-deep disabled:opacity-60">
+          {enCours ? 'Envoi…' : 'Envoyer à la direction'}
+        </button>
       </div>
     )
   }
