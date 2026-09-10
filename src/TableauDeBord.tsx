@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Accueil } from './cadre/Accueil'
 import { MaSemaine } from './cadre/MaSemaine'
 import { MesActions } from './cadre/MesActions'
+import { Alertes } from './cadre/Alertes'
 import { AttribuerAction } from './admin/AttribuerAction'
 
 type Props = { nom: string; role?: string; utilisateurId?: string; onDeconnexion: () => void }
@@ -16,6 +17,7 @@ function Icone({ nom, className = 'h-5 w-5' }: { nom: string; className?: string
     case 'performance': return (<svg {...c}><path d="M3 3v18h18" /><rect x="7" y="11" width="3" height="7" rx="0.5" /><rect x="12" y="7" width="3" height="11" rx="0.5" /><rect x="17" y="4" width="3" height="14" rx="0.5" /></svg>)
     case 'semaine': return (<svg {...c}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>)
     case 'attribuer': return (<svg {...c}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M19 8v6" /><path d="M22 11h-6" /></svg>)
+    case 'alertes': return (<svg {...c}><path d="M10.3 3.5 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.5a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>)
     default: return null
   }
 }
@@ -24,6 +26,7 @@ const MENU = [
   { id: 'tableau', label: 'Tableau de bord' },
   { id: 'semaine', label: 'Ma semaine' },
   { id: 'actions', label: 'Mes actions du trimestre' },
+  { id: 'alertes', label: 'Alertes' },
   { id: 'activites', label: 'Activité' },
   { id: 'evenements', label: "Événement de l'UIF" },
   { id: 'performance', label: "Performance de l'UIF" },
@@ -106,6 +109,8 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, on
             <MaSemaine utilisateurId={utilisateurId} nom={nom} />
           ) : pageActive === 'actions' ? (
             <MesActions utilisateurId={utilisateurId} />
+          ) : pageActive === 'alertes' ? (
+            <Alertes utilisateurId={utilisateurId} />
           ) : (
             <div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
               <Icone nom={pageActive} className="h-10 w-10 text-brh-primary/40" />
