@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { TableauDeBord } from './TableauDeBord'
+import { supabase } from './supabase'
 
 const UTILISATEURS = [
   { nom: 'Admin', role: 'Gestionnaire de données' },
@@ -26,6 +27,16 @@ function App() {
   const [nouveauCode, setNouveauCode] = useState('')
   const [confirmation, setConfirmation] = useState('')
   const [erreur, setErreur] = useState('')
+
+  // 🔎 Test de connexion à la base
+  const [dbStatut, setDbStatut] = useState<'test' | 'ok' | 'erreur'>('test')
+  const [dbErreur, setDbErreur] = useState('')
+  useEffect(() => {
+    supabase.from('cadres_strategiques').select('*').then(({ error }) => {
+      if (error) { setDbStatut('erreur'); setDbErreur(error.message) }
+      else setDbStatut('ok')
+    })
+  }, [])
 
   function seConnecter(e: FormEvent) {
     e.preventDefault()
@@ -136,6 +147,12 @@ function App() {
           {/* Mention sécurité */}
           <div className="mb-6 flex items-center justify-center gap-2 text-[11px] font-semibold uppercase tracking-[0.25em] text-brh-muted">
             <span>🔒</span> Espace sécurisé
+          </div>
+
+          <div className="mb-6 text-center text-xs">
+            {dbStatut === 'test' && <span className="text-brh-muted">Vérification de la base…</span>}
+            {dbStatut === 'ok' && <span className="font-medium text-brh-success">● Base de données connectée</span>}
+            {dbStatut === 'erreur' && <span className="font-medium text-brh-danger">● Base non connectée : {dbErreur}</span>}
           </div>
 
           {/* ÉCRAN 1 — Connexion */}
