@@ -3,6 +3,7 @@ import { Accueil } from './cadre/Accueil'
 import { MaSemaine } from './cadre/MaSemaine'
 import { MesActions } from './cadre/MesActions'
 import { Alertes } from './cadre/Alertes'
+import { Activite } from './cadre/Activite'
 import { AttribuerAction } from './admin/AttribuerAction'
 
 type Props = { nom: string; role?: string; utilisateurId?: string; onDeconnexion: () => void }
@@ -111,6 +112,8 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, on
             <MesActions utilisateurId={utilisateurId} />
           ) : pageActive === 'alertes' ? (
             <Alertes utilisateurId={utilisateurId} />
+          ) : pageActive === 'activites' ? (
+            <Activite utilisateurId={utilisateurId} />
           ) : (
             <div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
               <Icone nom={pageActive} className="h-10 w-10 text-brh-primary/40" />
