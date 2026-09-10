@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { supabase } from './supabase'
 
 type Props = { nom: string; role?: string; utilisateurId?: string; onDeconnexion: () => void }
 type Action = { titre: string; axe: string; statut: string; pct: number; echeance: string }
+type UserLite = { id: string; nom: string; role: string | null }
+type CadreLite = { id: string; nom: string }
 
 // 💬 Citations & faits — une par semaine (modifie librement cette liste)
 const INSPIRATIONS: { type: 'citation' | 'fait'; texte: string; source: string }[] = [
@@ -42,6 +44,7 @@ function Icone({ nom, className = 'h-5 w-5' }: { nom: string; className?: string
     case 'semaine': return (<svg {...c}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>)
     case 'evenements': return (<svg {...c}><path d="M12 2.5l2.7 5.6 6.1.5-4.6 4 1.4 6-5.6-3.3-5.6 3.3 1.4-6-4.6-4 6.1-.5z" /></svg>)
     case 'performance': return (<svg {...c}><path d="M3 3v18h18" /><rect x="7" y="11" width="3" height="7" rx="0.5" /><rect x="12" y="7" width="3" height="11" rx="0.5" /><rect x="17" y="4" width="3" height="14" rx="0.5" /></svg>)
+    case 'attribuer': return (<svg {...c}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M19 8v6" /><path d="M22 11h-6" /></svg>)
     default: return null
   }
 }
@@ -62,9 +65,132 @@ const STATUTS: Record<string, { label: string; cls: string }> = {
   bloque: { label: 'Bloqué', cls: 'bg-gray-200 text-gray-800' },
 }
 
+const champAdmin =
+  'w-full rounded-lg border border-brh-border bg-white px-4 py-2.5 text-sm text-brh-text outline-none transition placeholder:text-brh-muted/60 focus:border-brh-primary focus:ring-4 focus:ring-brh-primary/10'
+const labelAdmin = 'mb-1.5 block text-xs font-semibold uppercase tracking-wide text-brh-muted'
+
+// 🛠️ Formulaire réservé à l'Admin : attribuer une action à un collaborateur
+function AttribuerAction() {
+  const [users, setUsers] = useState<UserLite[]>([])
+  const [cadres, setCadres] = useState<CadreLite[]>([])
+
+  const [userId, setUserId] = useState('')
+  const [titre, setTitre] = useState('')
+  const [cadreId, setCadreId] = useState('')
+  const [trimestre, setTrimestre] = useState('T2')
+  const [echeance, setEcheance] = useState('')
+
+  const [enCours, setEnCours] = useState(false)
+  const [message, setMessage] = useState<{ ok: boolean; texte: string } | null>(null)
+
+  useEffect(() => {
+    supabase.from('users').select('id, nom, role').order('nom').then(({ data }) => {
+      const liste = (data ?? []).filter((u: any) => u.role !== 'admin' && u.role !== 'directrice') as UserLite[]
+      setUsers(liste)
+    })
+    supabase.from('cadres_strategiques').select('id, nom').order('nom').then(({ data }) => {
+      setCadres((data ?? []) as CadreLite[])
+    })
+  }, [])
+
+  async function enregistrer(e: FormEvent) {
+    e.preventDefault()
+    setMessage(null)
+    if (!userId || titre.trim() === '' || !cadreId || !echeance) {
+      setMessage({ ok: false, texte: 'Merci de remplir tous les champs.' })
+      return
+    }
+    setEnCours(true)
+    const { error } = await supabase.from('actions').insert({
+      user_id: userId,
+      nom: titre.trim(),
+      cadre_strategique_id: cadreId,
+      trimestre,
+      echeance,
+      statut: 'en_attente',
+      pourcentage: 0,
+    })
+    setEnCours(false)
+    if (error) {
+      setMessage({ ok: false, texte: 'Erreur : ' + error.message })
+      return
+    }
+    const personne = users.find((u) => u.id === userId)?.nom ?? 'le collaborateur'
+    setMessage({ ok: true, texte: `Action attribuée à ${personne}.` })
+    setTitre(''); setCadreId(''); setEcheance(''); setUserId('')
+  }
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-brh-primary">Attribuer une action</h1>
+        <p className="mt-1 text-sm text-brh-muted">
+          Créez une action et confiez-la à un collaborateur. Il pourra ensuite suivre son avancement depuis son espace.
+        </p>
+      </div>
+
+      <form onSubmit={enregistrer} className="space-y-5 rounded-2xl border border-brh-border bg-white p-6 shadow-sm">
+        <div>
+          <label className={labelAdmin}>Collaborateur</label>
+          <select value={userId} onChange={(e) => setUserId(e.target.value)} className={champAdmin}>
+            <option value="">— Choisir une personne —</option>
+            {users.map((u) => (<option key={u.id} value={u.id}>{u.nom}</option>))}
+          </select>
+        </div>
+
+        <div>
+          <label className={labelAdmin}>Intitulé de l'action</label>
+          <input type="text" value={titre} onChange={(e) => setTitre(e.target.value)} placeholder="Ex. : Collecte de données nationales" className={champAdmin} />
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label className={labelAdmin}>Cadre stratégique</label>
+            <select value={cadreId} onChange={(e) => setCadreId(e.target.value)} className={champAdmin}>
+              <option value="">— Choisir un cadre —</option>
+              {cadres.map((c) => (<option key={c.id} value={c.id}>{c.nom}</option>))}
+            </select>
+          </div>
+          <div>
+            <label className={labelAdmin}>Trimestre</label>
+            <select value={trimestre} onChange={(e) => setTrimestre(e.target.value)} className={champAdmin}>
+              <option value="T1">T1 · Oct–Déc</option>
+              <option value="T2">T2 · Jan–Mars</option>
+              <option value="T3">T3 · Avr–Juin</option>
+              <option value="T4">T4 · Juil–Sept</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label className={labelAdmin}>Échéance</label>
+          <input type="date" value={echeance} onChange={(e) => setEcheance(e.target.value)} className={champAdmin} />
+        </div>
+
+        {message && (
+          <p className={`rounded-lg px-3 py-2 text-sm ${message.ok ? 'bg-brh-success/10 text-brh-success' : 'bg-brh-danger/10 text-brh-danger'}`}>
+            {message.texte}
+          </p>
+        )}
+
+        <button type="submit" disabled={enCours}
+          className="w-full rounded-lg bg-brh-primary px-6 py-3 text-sm font-semibold tracking-wide text-white shadow-lg shadow-brh-primary/20 transition hover:bg-brh-deep disabled:opacity-60">
+          {enCours ? 'Enregistrement…' : "Attribuer l'action"}
+        </button>
+      </form>
+    </div>
+  )
+}
+
 export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, onDeconnexion }: Props) {
   const [pageActive, setPageActive] = useState('tableau')
   const [menuOuvert, setMenuOuvert] = useState(false)
+
+  // L'Admin voit une entrée supplémentaire pour attribuer des actions
+  const estAdmin = role === 'admin'
+  const menu = estAdmin
+    ? [...MENU.slice(0, 3), { id: 'attribuer', label: 'Attribuer une action' }, ...MENU.slice(3)]
+    : MENU
 
   const prenom = nom.split(' ')[0]
   const initiales = nom.split(' ').map((m) => m[0]).slice(0, 2).join('').toUpperCase()
@@ -114,7 +240,7 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, on
       })
   }, [utilisateurId])
 
-  const titrePage = MENU.find((m) => m.id === pageActive)?.label ?? ''
+  const titrePage = menu.find((m) => m.id === pageActive)?.label ?? ''
 
   return (
     <div className="min-h-screen bg-brh-bg lg:flex">
@@ -132,7 +258,7 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, on
         </div>
 
         <nav className="flex-1 space-y-1 px-3 py-4">
-          {MENU.map((m) => {
+          {menu.map((m) => {
             const actif = m.id === pageActive
             return (
               <button key={m.id} onClick={() => { setPageActive(m.id); setMenuOuvert(false) }}
@@ -271,6 +397,8 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, on
                 </div>
               </div>
             </div>
+          ) : pageActive === 'attribuer' ? (
+            <AttribuerAction />
           ) : (
             <div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
               <Icone nom={pageActive} className="h-10 w-10 text-brh-primary/40" />
