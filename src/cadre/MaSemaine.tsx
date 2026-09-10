@@ -146,8 +146,14 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
       actions_semaine: selection, questions: questions.trim() || null, debut_envoi: now,
     }, { onConflict: 'user_id,semaine_debut' })
     setEnvoi(null)
-    if (error) setMsgDebut({ ok: false, t: 'Erreur : ' + error.message })
-    else { setDebutEnvoi(now); setMsgDebut({ ok: true, t: 'Rapport de début envoyé à la direction.' }) }
+    if (error) { setMsgDebut({ ok: false, t: 'Erreur : ' + error.message }); return }
+    setDebutEnvoi(now)
+    if (emailDebut.trim()) {
+      composerEmail('debut', emailDebut.trim())
+      setMsgDebut({ ok: true, t: 'Rapport envoyé à la direction — une copie email vient de s\'ouvrir.' })
+    } else {
+      setMsgDebut({ ok: true, t: "Rapport envoyé à la direction. (Ajoute l'email pour lui envoyer une copie.)" })
+    }
   }
 
   async function envoyerFin() {
@@ -168,7 +174,10 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
       supabase.from('actions').update({ pourcentage: avancements[a.id] ?? a.pct, updated_at: now }).eq('id', a.id)
     ))
     setEnvoi(null); setFinEnvoi(now)
-    setMsgFin({ ok: true, t: 'Rapport de fin envoyé. Avancement proposé enregistré (en attente de validation de la direction).' })
+    if (emailFin.trim()) composerEmail('fin', emailFin.trim())
+    setMsgFin({ ok: true, t: emailFin.trim()
+      ? 'Rapport de fin envoyé — copie email ouverte. Avancement enregistré (en attente de validation).'
+      : "Rapport de fin envoyé. Avancement enregistré (en attente de validation). Ajoute l'email pour une copie." })
   }
 
   async function ajouterDocument(e: ChangeEvent<HTMLInputElement>) {
@@ -191,8 +200,7 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
     await supabase.from('rapports').upsert({ user_id: utilisateurId, semaine_debut: semaineStr, documents: maj }, { onConflict: 'user_id,semaine_debut' })
   }
 
-  function envoyerParEmail(type: 'debut' | 'fin', email: string, setMsg: (m: { ok: boolean; t: string } | null) => void) {
-    if (email.trim() === '') { setMsg({ ok: false, t: "Saisis l'adresse email de la direction." }); return }
+  function composerEmail(type: 'debut' | 'fin', email: string) {
     const entete = [libelleSemaine(lundi), `Cadre : ${nom}`, '']
     let sujet = ''
     let lignes: string[] = []
@@ -310,11 +318,10 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
             </div>
             {msgDebut && <p className={`rounded-lg px-3 py-2 text-sm ${msgDebut.ok ? 'bg-brh-success/10 text-brh-success' : 'bg-brh-danger/10 text-brh-danger'}`}>{msgDebut.t}</p>}
             <div className="border-t border-brh-border/70 pt-4">
-              <label className={label}>Adresse email de la direction (pour la copie email)</label>
+              <label className={label}>Email de la direction — pour recevoir la copie</label>
               <input type="email" value={emailDebut} onChange={(e) => setEmailDebut(e.target.value)} placeholder="direction@brh.ht" className={champ} />
-              <div className="mt-3 flex flex-wrap justify-end gap-3">
-                <button onClick={() => envoyerParEmail('debut', emailDebut, setMsgDebut)} className="rounded-lg border border-brh-border bg-white px-4 py-2 text-sm font-semibold text-brh-text transition hover:bg-brh-bg">Copie par email</button>
-                <button onClick={envoyerDebut} disabled={envoi === 'debut'} className="rounded-lg bg-brh-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-brh-deep disabled:opacity-60">{envoi === 'debut' ? 'Envoi…' : 'Envoyer à la direction'}</button>
+              <div className="mt-3 flex justify-end">
+                <button onClick={envoyerDebut} disabled={envoi === 'debut'} className="rounded-lg bg-brh-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-brh-deep disabled:opacity-60">{envoi === 'debut' ? 'Envoi…' : 'Envoyer à la direction'}</button>
               </div>
             </div>
           </div>
@@ -413,11 +420,10 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
 
             {msgFin && <p className={`rounded-lg px-3 py-2 text-sm ${msgFin.ok ? 'bg-brh-success/10 text-brh-success' : 'bg-brh-danger/10 text-brh-danger'}`}>{msgFin.t}</p>}
             <div className="border-t border-brh-border/70 pt-4">
-              <label className={label}>Adresse email de la direction (pour la copie email)</label>
+              <label className={label}>Email de la direction — pour recevoir la copie</label>
               <input type="email" value={emailFin} onChange={(e) => setEmailFin(e.target.value)} placeholder="direction@brh.ht" className={champ} />
-              <div className="mt-3 flex flex-wrap justify-end gap-3">
-                <button onClick={() => envoyerParEmail('fin', emailFin, setMsgFin)} className="rounded-lg border border-brh-border bg-white px-4 py-2 text-sm font-semibold text-brh-text transition hover:bg-brh-bg">Copie par email</button>
-                <button onClick={envoyerFin} disabled={envoi === 'fin'} className="rounded-lg bg-brh-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-brh-deep disabled:opacity-60">{envoi === 'fin' ? 'Envoi…' : 'Envoyer à la direction'}</button>
+              <div className="mt-3 flex justify-end">
+                <button onClick={envoyerFin} disabled={envoi === 'fin'} className="rounded-lg bg-brh-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-brh-deep disabled:opacity-60">{envoi === 'fin' ? 'Envoi…' : 'Envoyer à la direction'}</button>
               </div>
             </div>
           </div>
