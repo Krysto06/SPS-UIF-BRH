@@ -213,9 +213,9 @@ export function MesActions({ utilisateurId }: { utilisateurId?: string }) {
               </div>
 
               <div className="mt-4">
-                <label className={label}>Commentaire (optionnel)</label>
+                <label className={label}>Commentaire — visible par la direction (optionnel)</label>
                 <input type="text" value={a.commentaire} onChange={(e) => modifier(a.id, 'commentaire', e.target.value)}
-                  placeholder="Ex. : en attente de données du terrain" className={champ} />
+                  placeholder="Ex. : en attente des données de la BNC" className={champ} />
               </div>
 
               <div className="mt-5 flex items-center justify-end gap-3">
