@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
+import { notifierRole } from '../notifications'
 
 const champ =
   'w-full rounded-lg border border-brh-border bg-white px-4 py-2.5 text-sm text-brh-text outline-none transition placeholder:text-brh-muted/60 focus:border-brh-primary focus:ring-4 focus:ring-brh-primary/10'
@@ -77,6 +78,8 @@ export function Alertes({ utilisateurId }: { utilisateurId?: string }) {
     })
     setEnvoi(false)
     if (error) { setMsg({ ok: false, t: 'Erreur : ' + error.message }); return }
+    const action = actions.find((x) => x.id === actionId)
+    await notifierRole('direction', `Nouvelle alerte (${type === 'blocage' ? 'blocage' : 'retard'}) sur « ${action?.nom ?? 'une action'} ».`, 'alertes')
     setActionId(''); setType('retard'); setMessage('')
     setMsg({ ok: true, t: 'Alerte transmise à la direction. Une copie apparaît ci-dessous.' })
     await chargerAlertes(utilisateurId)

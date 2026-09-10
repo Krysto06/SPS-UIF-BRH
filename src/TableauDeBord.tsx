@@ -5,6 +5,7 @@ import { MesActions } from './cadre/MesActions'
 import { Alertes } from './cadre/Alertes'
 import { Activite } from './cadre/Activite'
 import { AttribuerAction } from './admin/AttribuerAction'
+import { Cloche } from './Notifications'
 
 type Props = { nom: string; role?: string; utilisateurId?: string; onDeconnexion: () => void }
 
@@ -95,9 +96,10 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, on
             </button>
             <h2 className="text-base font-semibold text-brh-primary">{titrePage} <span className="font-normal text-brh-muted">— UIF</span></h2>
           </div>
-          <div className="hidden items-center gap-2 sm:flex">
-            <span className="rounded-full bg-brh-primary/5 px-3 py-1 text-xs font-medium text-brh-primary">Année fiscale 2026–2027</span>
-            <span className="rounded-full bg-brh-bg px-3 py-1 text-xs font-medium text-brh-muted">Trimestre 2</span>
+          <div className="flex items-center gap-2">
+            <span className="hidden rounded-full bg-brh-primary/5 px-3 py-1 text-xs font-medium text-brh-primary sm:inline">Année fiscale 2026–2027</span>
+            <span className="hidden rounded-full bg-brh-bg px-3 py-1 text-xs font-medium text-brh-muted sm:inline">Trimestre 2</span>
+            <Cloche utilisateurId={utilisateurId} onNaviguer={(l) => setPageActive(l)} />
           </div>
         </header>
 
