@@ -29,6 +29,19 @@ production de rapports de l'Unité d'Inclusion Financière.
 | Alerte | Rouge | `#9b2c2c` |
 | Avertissement | Orange | `#c05621` |
 
+## ⚠️ À NE PAS OUBLIER — Sécurité (RLS)
+
+> Pendant le développement, la sécurité **RLS (Row Level Security)** a été **DÉSACTIVÉE**
+> sur les 7 tables Supabase pour pouvoir lire/écrire librement les données de test :
+>
+> ```sql
+> alter table <table> disable row level security;  -- users, cadres_strategiques, actions, …
+> ```
+>
+> **AVANT toute mise en production**, il faut **RÉACTIVER RLS** et écrire de vraies règles
+> (chaque personne ne voit que ce qu'elle doit voir, selon son rôle : cadre / directrice / admin).
+> → à traiter à l'**Étape 2 (Authentification et rôles)** ci-dessous.
+
 ## Démarrer en local
 
 ```bash
