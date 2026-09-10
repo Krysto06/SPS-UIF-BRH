@@ -1,6 +1,7 @@
 import { useState, useEffect, type ChangeEvent } from 'react'
 import { supabase } from '../supabase'
 import { telechargerRapportPdf, type RapportPdf } from '../pdf'
+import { BAREME, etapeDe, etapeCls } from '../bareme'
 
 const champ =
   'w-full rounded-lg border border-brh-border bg-white px-4 py-2.5 text-sm text-brh-text outline-none transition placeholder:text-brh-muted/60 focus:border-brh-primary focus:ring-4 focus:ring-brh-primary/10'
@@ -31,27 +32,6 @@ function libelleSemaine(lundi: Date): string {
 function formatEnvoi(iso: string): string {
   const d = new Date(iso)
   return `${d.getDate()} ${MOIS[d.getMonth()]} à ${String(d.getHours()).padStart(2, '0')}h${String(d.getMinutes()).padStart(2, '0')}`
-}
-
-const BAREME: { v: number; label: string; desc: string }[] = [
-  { v: 0, label: 'Pas encore commencée', desc: "rien d'entamé" },
-  { v: 25, label: 'Démarrée', desc: 'travail engagé' },
-  { v: 50, label: 'Bien avancée', desc: 'à mi-parcours' },
-  { v: 75, label: 'Terminée — attente de révision', desc: 'le travail est fait (direction)' },
-  { v: 90, label: "Révisée — attente d'approbation", desc: 'validée par la direction (conseil)' },
-  { v: 100, label: 'Approuvée', desc: 'approuvée par le conseil' },
-]
-function etapeDe(pct: number) {
-  let r = BAREME[0]
-  for (const b of BAREME) if (pct >= b.v) r = b
-  return r
-}
-function etapeCls(pct: number): string {
-  if (pct >= 100) return 'bg-brh-success/10 text-brh-success'
-  if (pct >= 90) return 'bg-brh-secondary/15 text-brh-secondary'
-  if (pct >= 75) return 'bg-orange-50 text-brh-warning'
-  if (pct >= 25) return 'bg-blue-50 text-blue-700'
-  return 'bg-gray-100 text-gray-600'
 }
 
 type ActionSem = { id: string; nom: string; axe: string; echeance: string | null; echeanceFr: string; pct: number }
