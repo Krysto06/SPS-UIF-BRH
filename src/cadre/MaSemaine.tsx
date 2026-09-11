@@ -2,6 +2,7 @@ import { useState, useEffect, type ChangeEvent } from 'react'
 import { supabase } from '../supabase'
 import { telechargerRapportPdf, type RapportPdf } from '../pdf'
 import { BAREME, etapeDe, etapeCls } from '../bareme'
+import { chargerSousActions, basculerSousAction, grouper, type SousAction } from '../sousActions'
 
 const champ =
   'w-full rounded-lg border border-brh-border bg-white px-4 py-2.5 text-sm text-brh-text outline-none transition placeholder:text-brh-muted/60 focus:border-brh-primary focus:ring-4 focus:ring-brh-primary/10'
@@ -66,6 +67,8 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
   const [uploadEnCours, setUploadEnCours] = useState(false)
   const [msgDoc, setMsgDoc] = useState<string | null>(null)
 
+  const [sous, setSous] = useState<Record<string, SousAction[]>>({})
+
   useEffect(() => {
     if (!utilisateurId) { setChargement(false); return }
     supabase.from('actions').select('id, nom, echeance, pourcentage, cadres_strategiques(nom)').eq('user_id', utilisateurId).order('echeance')
@@ -94,6 +97,17 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
         setSelection(Array.isArray(data.actions_semaine) ? data.actions_semaine : [])
       })
   }, [utilisateurId, semaineStr])
+
+  // Charge les sous-actions des actions de la semaine
+  useEffect(() => {
+    chargerSousActions(selection).then((s) => setSous(grouper(s)))
+  }, [selection])
+
+  async function basculerSous(s: SousAction) {
+    const fait = !s.fait
+    setSous((prev) => ({ ...prev, [s.action_id]: (prev[s.action_id] ?? []).map((x) => (x.id === s.id ? { ...x, fait } : x)) }))
+    await basculerSousAction(s.id, fait)
+  }
 
   const actionsSemaine = toutes.filter((a) => selection.includes(a.id))
   const dispo = toutes.filter((a) => !selection.includes(a.id))
@@ -247,6 +261,20 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
                     <span className="w-12 shrink-0 text-right text-sm font-bold text-brh-primary">{pct} %</span>
                   </div>
                   <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-brh-bg"><div className="h-full rounded-full bg-brh-primary transition-all" style={{ width: `${pct}%` }} /></div>
+                  {(sous[a.id] ?? []).length > 0 && (
+                    <ul className="mt-3 space-y-1.5 border-t border-brh-border/60 pt-3">
+                      {(sous[a.id] ?? []).map((s) => (
+                        <li key={s.id} className="flex items-center gap-2.5">
+                          <button onClick={() => basculerSous(s)} aria-label="Cocher"
+                            className={`flex shrink-0 items-center justify-center rounded-[5px] border transition ${s.fait ? 'border-brh-success bg-brh-success text-white' : 'border-brh-border bg-white text-transparent hover:border-brh-primary'}`}
+                            style={{ height: 18, width: 18 }}>
+                            <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6 9 17l-5-5" /></svg>
+                          </button>
+                          <span className={`text-sm ${s.fait ? 'text-brh-muted line-through' : 'text-brh-text'}`}>{s.titre}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               )
             })}

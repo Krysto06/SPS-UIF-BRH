@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
-import { BAREME, etapeDe, etapeCls } from '../bareme'
+import { BAREME, etapeDe, etapeCls, couleurPct } from '../bareme'
+import { chargerSousActions, ajouterSousAction, basculerSousAction, supprimerSousAction, grouper, type SousAction } from '../sousActions'
 
 const champ =
   'w-full rounded-lg border border-brh-border bg-white px-4 py-2.5 text-sm text-brh-text outline-none transition placeholder:text-brh-muted/60 focus:border-brh-primary focus:ring-4 focus:ring-brh-primary/10'
@@ -43,7 +44,7 @@ function Synthese({ liste }: { liste: ActionEdit[] }) {
   const rayon = 46
   const circ = 2 * Math.PI * rayon
   const offset = circ * (1 - moyenne / 100)
-  const couleur = moyenne < 50 ? '#E39B9B' : '#12355B'
+  const couleur = couleurPct(moyenne)
 
   return (
     <div className="grid gap-4 lg:grid-cols-3">
@@ -81,11 +82,11 @@ function Synthese({ liste }: { liste: ActionEdit[] }) {
             <div key={a.id} className="contents">
               <span className="truncate text-brh-text" title={a.nom}>{a.nom}</span>
               <div className="relative h-3 overflow-hidden rounded-full bg-brh-bg">
-                <div className="h-full rounded-full bg-brh-primary transition-all" style={{ width: `${a.pourcentage}%` }} />
+                <div className="h-full rounded-full transition-all" style={{ width: `${a.pourcentage}%`, background: couleurPct(a.pourcentage) }} />
                 {/* Repère de la moyenne — même largeur de piste sur chaque ligne, donc aligné */}
                 <div className="absolute inset-y-0 w-px bg-brh-secondary" style={{ left: `${moyenne}%` }} />
               </div>
-              <span className="text-right font-bold tabular-nums text-brh-primary">{a.pourcentage}%</span>
+              <span className="text-right font-bold tabular-nums" style={{ color: couleurPct(a.pourcentage) }}>{a.pourcentage}%</span>
             </div>
           ))}
         </div>
@@ -99,6 +100,8 @@ export function MesActions({ utilisateurId }: { utilisateurId?: string }) {
   const [liste, setListe] = useState<ActionEdit[]>([])
   const [chargement, setChargement] = useState(true)
   const [sauvegarde, setSauvegarde] = useState<string | null>(null)
+  const [sous, setSous] = useState<Record<string, SousAction[]>>({})
+  const [nouveau, setNouveau] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (!utilisateurId) { setChargement(false); return }
@@ -121,8 +124,63 @@ export function MesActions({ utilisateurId }: { utilisateurId?: string }) {
         }))
         setListe(l)
         setChargement(false)
+        chargerSousActions(l.map((x) => x.id)).then((s) => setSous(grouper(s)))
       })
   }, [utilisateurId])
+
+  async function ajouterSous(actionId: string) {
+    const titre = (nouveau[actionId] ?? '').trim()
+    if (titre === '') return
+    setNouveau((prev) => ({ ...prev, [actionId]: '' }))
+    const cree = await ajouterSousAction(actionId, titre)
+    if (cree) setSous((prev) => ({ ...prev, [actionId]: [...(prev[actionId] ?? []), cree] }))
+  }
+  async function basculerSous(s: SousAction) {
+    const fait = !s.fait
+    setSous((prev) => ({ ...prev, [s.action_id]: (prev[s.action_id] ?? []).map((x) => (x.id === s.id ? { ...x, fait } : x)) }))
+    await basculerSousAction(s.id, fait)
+  }
+  async function supprimerSous(s: SousAction) {
+    setSous((prev) => ({ ...prev, [s.action_id]: (prev[s.action_id] ?? []).filter((x) => x.id !== s.id) }))
+    await supprimerSousAction(s.id)
+  }
+
+  // Bloc « sous-actions » d'une action (fonction, pas composant → garde le focus de l'input)
+  function blocSousActions(actionId: string) {
+    const items = sous[actionId] ?? []
+    const faites = items.filter((s) => s.fait).length
+    return (
+      <div className="mt-5 border-t border-brh-border/60 pt-4">
+        <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-brh-muted">
+          Sous-actions
+          {items.length > 0 && <span className="rounded-full bg-brh-bg px-2 py-0.5 text-[11px] font-medium normal-case text-brh-muted">{faites}/{items.length} faites</span>}
+        </p>
+        {items.length > 0 && (
+          <ul className="mb-2.5 space-y-1.5">
+            {items.map((s) => (
+              <li key={s.id} className="flex items-center gap-2.5">
+                <button onClick={() => basculerSous(s)} aria-label="Cocher"
+                  className={`flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-[5px] border transition ${s.fait ? 'border-brh-success bg-brh-success text-white' : 'border-brh-border bg-white text-transparent hover:border-brh-primary'}`}
+                  style={{ height: 18, width: 18 }}>
+                  <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6 9 17l-5-5" /></svg>
+                </button>
+                <span className={`flex-1 text-sm ${s.fait ? 'text-brh-muted line-through' : 'text-brh-text'}`}>{s.titre}</span>
+                <button onClick={() => supprimerSous(s)} className="shrink-0 text-brh-muted transition hover:text-brh-danger" aria-label="Supprimer">
+                  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="flex gap-2">
+          <input value={nouveau[actionId] ?? ''} onChange={(e) => setNouveau((prev) => ({ ...prev, [actionId]: e.target.value }))}
+            onKeyDown={(e) => { if (e.key === 'Enter') ajouterSous(actionId) }}
+            placeholder="Ajouter une sous-action…" className={champ + ' flex-1'} />
+          <button onClick={() => ajouterSous(actionId)} className="shrink-0 rounded-lg border border-brh-border bg-white px-4 py-2 text-sm font-semibold text-brh-primary transition hover:bg-brh-bg">Ajouter</button>
+        </div>
+      </div>
+    )
+  }
 
   function modifier(id: string, champ: 'statut' | 'pourcentage' | 'commentaire', valeur: string | number) {
     setListe((prev) => prev.map((a) => (a.id === id ? { ...a, [champ]: valeur, enregistre: null } : a)))
@@ -217,6 +275,8 @@ export function MesActions({ utilisateurId }: { utilisateurId?: string }) {
                 <input type="text" value={a.commentaire} onChange={(e) => modifier(a.id, 'commentaire', e.target.value)}
                   placeholder="Ex. : en attente des données de la BNC" className={champ} />
               </div>
+
+              {blocSousActions(a.id)}
 
               <div className="mt-5 flex items-center justify-end gap-3">
                 {a.enregistre === 'ok' && <span className="text-xs font-medium text-brh-success">✓ Enregistré</span>}

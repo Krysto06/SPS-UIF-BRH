@@ -30,3 +30,13 @@ export function etapeCls(pct: number): string {
   if (pct >= 25) return 'bg-blue-50 text-blue-700'
   return 'bg-gray-100 text-gray-600'
 }
+
+// Couleur (hex) d'un pourcentage — pour les barres et chiffres colorés
+export function couleurPct(pct: number): string {
+  if (pct >= 100) return '#1E7A46' // vert — approuvée
+  if (pct >= 90) return '#7C3AED'  // violet — attente d'approbation
+  if (pct >= 75) return '#2563EB'  // bleu — attente de révision
+  if (pct >= 50) return '#C9A227'  // or — bien avancée
+  if (pct >= 25) return '#D97706'  // orange — démarrée
+  return '#DC6B6B'                 // rouge doux — pas commencée
+}
