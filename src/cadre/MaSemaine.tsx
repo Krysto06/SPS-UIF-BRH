@@ -266,7 +266,7 @@ export function MaSemaine({ utilisateurId, nom }: { utilisateurId?: string; nom:
                       {(sous[a.id] ?? []).map((s) => (
                         <li key={s.id} className="flex items-center gap-2.5">
                           <button onClick={() => basculerSous(s)} aria-label="Cocher"
-                            className={`flex shrink-0 items-center justify-center rounded-[5px] border-2 transition ${s.fait ? 'border-brh-success bg-brh-success' : 'border-brh-border bg-white hover:border-brh-primary'}`}
+                            className={`flex shrink-0 items-center justify-center rounded-[5px] border-[2.5px] transition ${s.fait ? 'border-brh-success bg-brh-success' : 'border-brh-muted bg-white hover:border-brh-primary'}`}
                             style={{ height: 18, width: 18 }}>
                             {s.fait && <svg viewBox="0 0 24 24" className="h-3 w-3 text-white" fill="none" stroke="currentColor" strokeWidth="3.5"><path d="M20 6 9 17l-5-5" /></svg>}
                           </button>
