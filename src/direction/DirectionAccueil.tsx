@@ -110,7 +110,7 @@ export function DirectionAccueil({ nom, utilisateurId }: { nom: string; utilisat
       <div className="relative overflow-hidden rounded-xl px-4 py-3 text-white shadow-sm" style={{ background: 'linear-gradient(to right, #12355B, #0B2545)' }}>
         <div className="flex items-baseline gap-2">
           <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-brh-gold-light">{insp.type === 'fait' ? 'Le sais-tu ?' : 'Citation'}</span>
-          <span className="truncate text-[11px] text-brh-gold-light/80">— {insp.source}</span>
+          {insp.type === 'citation' && <span className="truncate text-[11px] text-brh-gold-light/80">— {insp.source}</span>}
         </div>
         <p className="mt-1 max-w-3xl text-sm leading-snug text-white/90">« {insp.texte} »</p>
       </div>

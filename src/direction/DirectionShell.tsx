@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Cloche } from '../Notifications'
 import { DirectionAccueil } from './DirectionAccueil'
+import { DirectionSemaine } from './DirectionSemaine'
 
 type Props = { nom: string; utilisateurId?: string; onDeconnexion: () => void }
 
@@ -115,8 +116,8 @@ export function DirectionShell({ nom, utilisateurId, onDeconnexion }: Props) {
         </header>
 
         <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8">
-          {pageActive === 'tableau'
-            ? <DirectionAccueil nom={nom} utilisateurId={utilisateurId} />
+          {pageActive === 'tableau' ? <DirectionAccueil nom={nom} utilisateurId={utilisateurId} />
+            : pageActive === 'semaine' ? <DirectionSemaine />
             : <EnConstruction titre={titrePage} />}
         </main>
       </div>
