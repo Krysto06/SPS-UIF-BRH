@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react'
 import { TableauDeBord } from './TableauDeBord'
+import { DirectionShell } from './direction/DirectionShell'
 import { supabase } from './supabase'
 
 type Utilisateur = { id: string; nom: string; role: string | null }
@@ -52,6 +53,9 @@ function App() {
 
   if (etape === 'tableauDeBord') {
     const utilisateur = utilisateurs.find((u) => u.nom === nom)
+    if (utilisateur?.role === 'direction') {
+      return <DirectionShell nom={nom} utilisateurId={utilisateur?.id} onDeconnexion={seDeconnecter} />
+    }
     return <TableauDeBord nom={nom} role={utilisateur?.role ?? undefined} utilisateurId={utilisateur?.id} onDeconnexion={seDeconnecter} />
   }
 
