@@ -2,6 +2,11 @@ import { useState } from 'react'
 import { Cloche } from '../Notifications'
 import { DirectionAccueil } from './DirectionAccueil'
 import { DirectionSemaine } from './DirectionSemaine'
+import { DirectionActions } from './DirectionActions'
+import { DirectionActivite } from './DirectionActivite'
+import { DirectionSecretariat } from './DirectionSecretariat'
+import { DirectionEvenements } from './DirectionEvenements'
+import { DirectionPerformance } from './DirectionPerformance'
 
 type Props = { nom: string; utilisateurId?: string; onDeconnexion: () => void }
 
@@ -111,13 +116,21 @@ export function DirectionShell({ nom, utilisateurId, onDeconnexion }: Props) {
               <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
               {dateDuJour()}
             </span>
-            <Cloche utilisateurId={utilisateurId} onNaviguer={(l) => setPageActive(['semaine', 'activite', 'actions', 'secretariat'].includes(l) ? l : 'tableau')} />
+            <Cloche utilisateurId={utilisateurId} onNaviguer={(l) => {
+              const map: Record<string, string> = { activites: 'activite', alertes: 'tableau', semaine: 'semaine', secretariat: 'secretariat', event: 'event', actions: 'actions', tableau: 'tableau' }
+              setPageActive(map[l] ?? 'tableau')
+            }} />
           </div>
         </header>
 
         <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8">
           {pageActive === 'tableau' ? <DirectionAccueil nom={nom} utilisateurId={utilisateurId} />
             : pageActive === 'semaine' ? <DirectionSemaine />
+            : pageActive === 'actions' ? <DirectionActions />
+            : pageActive === 'activite' ? <DirectionActivite />
+            : pageActive === 'secretariat' ? <DirectionSecretariat utilisateurId={utilisateurId} />
+            : pageActive === 'event' ? <DirectionEvenements />
+            : pageActive === 'perf' ? <DirectionPerformance />
             : <EnConstruction titre={titrePage} />}
         </main>
       </div>
