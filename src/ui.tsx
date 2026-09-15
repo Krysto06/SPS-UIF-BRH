@@ -1,7 +1,22 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { citationDeLaSemaine } from './citations'
 
 const serif = { fontFamily: '"Fraunces", Georgia, "Times New Roman", serif' } as const
+
+// 🏛️ Logo BRH : affiche l'image si elle existe (public/logo-brh.jpg), sinon un écusson « BRH »
+export function Logo({ size = 40 }: { size?: number }) {
+  const [cassee, setCassee] = useState(false)
+  if (cassee) {
+    return (
+      <div className="flex shrink-0 items-center justify-center rounded-xl text-[11px] font-extrabold tracking-wide text-brh-primary shadow-sm" style={{ height: size, width: size, background: 'linear-gradient(135deg,#ffffff,#e9eef5)' }}>BRH</div>
+    )
+  }
+  return (
+    <div className="flex shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1.5 shadow-sm" style={{ height: size, width: size }}>
+      <img src="/logo-brh.jpg" alt="BRH" className="h-full w-full object-contain" onError={() => setCassee(true)} />
+    </div>
+  )
+}
 
 // ── Anneau de performance (dégradé navy → or) ──
 export function AnneauPerf({ value, titre, sousTitre }: { value: number; titre: string; sousTitre?: string }) {

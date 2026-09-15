@@ -6,6 +6,7 @@ import { Alertes } from './cadre/Alertes'
 import { Activite } from './cadre/Activite'
 import { AttribuerAction } from './admin/AttribuerAction'
 import { Cloche } from './Notifications'
+import { Logo } from './ui'
 
 type Props = { nom: string; role?: string; utilisateurId?: string; onDeconnexion: () => void }
 
@@ -53,9 +54,7 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, on
 
       <aside className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col bg-gradient-to-b from-brh-primary to-brh-deep text-white transition-transform duration-300 lg:static lg:translate-x-0 ${menuOuvert ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center gap-3 border-b border-white/10 px-4 py-5">
-          <div className="flex shrink-0 items-center justify-center rounded-lg bg-white p-1.5" style={{ height: 40, width: 40 }}>
-            <img src="/logo-brh.jpg" alt="BRH" className="h-full w-full object-contain" />
-          </div>
+          <Logo />
           <div className="leading-tight">
             <p className="text-sm font-bold">SPS-UIF</p>
             <p className="whitespace-nowrap text-[10px] text-white/50">Banque de la République d'Haïti</p>

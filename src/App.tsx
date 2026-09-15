@@ -1,6 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react'
 import { TableauDeBord } from './TableauDeBord'
 import { DirectionShell } from './direction/DirectionShell'
+import { Logo } from './ui'
 import { supabase } from './supabase'
 
 type Utilisateur = { id: string; nom: string; role: string | null }
@@ -69,7 +70,7 @@ function App() {
         <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at 25% 25%, rgba(201,162,39,0.10), transparent 45%)' }} />
 
         <div className="relative max-w-md">
-          <img src="/logo-brh.jpg" alt="Logo BRH" style={{ height: 56, width: 'auto', filter: 'grayscale(1) invert(1) brightness(1.7)', mixBlendMode: 'screen' }} />
+          <Logo size={56} />
           <h1 className="mt-6 text-3xl font-bold leading-tight tracking-tight">Banque de la République d'Haïti</h1>
           <p className="mt-2 text-lg font-medium text-brh-gold-light">Unité d'Inclusion Financière</p>
           <div className="mt-6 h-px w-14 bg-brh-secondary/60" />
@@ -93,9 +94,7 @@ function App() {
         <div className="w-full max-w-sm rounded-2xl border border-brh-border bg-white p-8 shadow-[0_20px_50px_-20px_rgba(18,53,91,0.30)]">
 
           <div className="mb-6 flex justify-center md:hidden">
-            <div className="flex items-center justify-center rounded-xl border border-brh-border bg-white p-2 shadow-sm" style={{ height: 48, width: 48 }}>
-              <img src="/logo-brh.jpg" alt="Logo BRH" className="h-full w-full object-contain" />
-            </div>
+            <Logo size={48} />
           </div>
 
           <div className="mb-6 flex items-center justify-center gap-2 text-[11px] font-semibold uppercase tracking-[0.25em] text-brh-muted">

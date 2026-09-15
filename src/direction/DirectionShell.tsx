@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Cloche } from '../Notifications'
+import { Logo } from '../ui'
 import { DirectionAccueil } from './DirectionAccueil'
 import { DirectionSemaine } from './DirectionSemaine'
 import { DirectionActions } from './DirectionActions'
@@ -68,9 +69,7 @@ export function DirectionShell({ nom, utilisateurId, onDeconnexion }: Props) {
 
       <aside className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col bg-gradient-to-b from-brh-primary to-brh-deep text-white transition-transform duration-300 lg:static lg:translate-x-0 ${menuOuvert ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center gap-3 border-b border-white/10 px-4 py-5">
-          <div className="flex shrink-0 items-center justify-center rounded-lg bg-white p-1.5" style={{ height: 40, width: 40 }}>
-            <img src="/logo-brh.jpg" alt="BRH" className="h-full w-full object-contain" />
-          </div>
+          <Logo />
           <div className="leading-tight">
             <p className="text-sm font-bold">SPS-UIF</p>
             <p className="whitespace-nowrap text-[10px] text-white/50">Espace direction</p>
