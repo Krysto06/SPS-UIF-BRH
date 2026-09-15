@@ -67,10 +67,10 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, on
             const actif = m.id === pageActive
             return (
               <button key={m.id} onClick={() => { setPageActive(m.id); setMenuOuvert(false) }}
-                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${actif ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
+                className={`relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${actif ? 'bg-white/10 font-semibold text-white' : 'font-medium text-white/60 hover:bg-white/5 hover:text-white'}`}>
+                {actif && <span className="absolute -left-3 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-brh-gold-light" />}
                 <Icone nom={m.id} className="h-5 w-5 shrink-0" />
                 {m.label}
-                {actif && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-brh-secondary" />}
               </button>
             )
           })}
@@ -78,7 +78,7 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, on
 
         <div className="border-t border-white/10 p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brh-secondary text-xs font-bold text-brh-primary">{initiales}</div>
+            <div className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-brh-primary shadow-sm" style={{ background: 'linear-gradient(135deg,#C9A227,#E2C766)' }}>{initiales}</div>
             <div className="min-w-0 leading-tight">
               <p className="truncate text-sm font-medium">{nom}</p>
               <p className="truncate text-[11px] text-white/50">{role}</p>

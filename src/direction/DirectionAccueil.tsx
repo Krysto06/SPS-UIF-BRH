@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { couleurPct } from '../bareme'
 import { notifier } from '../notifs'
-import { citationDeLaSemaine } from '../citations'
+import { BandeauCitation, Kpi, TitreSection, Avatar } from '../ui'
 
 const serif = { fontFamily: '"Fraunces", Georgia, "Times New Roman", serif' } as const
 
@@ -100,47 +100,32 @@ export function DirectionAccueil({ nom, utilisateurId }: { nom: string; utilisat
   }
 
   const salut = new Date().getHours() < 18 ? 'Bonjour' : 'Bonsoir'
-  const insp = citationDeLaSemaine()
 
   if (chargement) return <p className="text-center text-sm text-brh-muted">Chargement du tableau de bord…</p>
 
   return (
     <div className="space-y-6">
-      {/* Citation de la semaine */}
-      <div className="relative overflow-hidden rounded-xl px-4 py-3 text-white shadow-sm" style={{ background: 'linear-gradient(to right, #12355B, #0B2545)' }}>
-        <div className="flex items-baseline gap-2">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-brh-gold-light">{insp.type === 'fait' ? 'Le sais-tu ?' : 'Citation'}</span>
-          {insp.type === 'citation' && <span className="truncate text-[11px] text-brh-gold-light/80">— {insp.source}</span>}
-        </div>
-        <p className="mt-1 max-w-3xl text-sm leading-snug text-white/90">« {insp.texte} »</p>
-      </div>
+      <BandeauCitation />
 
       <div>
-        <h1 className="text-2xl font-bold text-brh-primary" style={serif}>{salut}, {nom}</h1>
+        <h1 className="text-3xl font-bold text-brh-primary" style={serif}>{salut}, {nom}</h1>
         <p className="mt-1 text-sm text-brh-muted">Voici la vue d'ensemble du pilotage de l'Unité d'Inclusion Financière.</p>
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        {[
-          { l: 'Cadres suivis', v: String(cadres.length) },
-          { l: 'Avancement moyen équipe', v: `${moyenneEquipe}%` },
-          { l: 'Alertes ouvertes', v: String(alertes.length), c: 'text-brh-danger' },
-          { l: 'À approuver', v: String(activites.length), c: 'text-brh-warning' },
-          { l: 'Rapports reçus (sem.)', v: `${rapportsRecus}/${cadres.length}` },
-        ].map((k) => (
-          <div key={k.l} className="rounded-2xl border border-brh-border bg-white p-4 shadow-sm">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-brh-muted">{k.l}</p>
-            <p className={`mt-1.5 text-2xl font-bold ${k.c ?? 'text-brh-primary'}`} style={serif}>{k.v}</p>
-          </div>
-        ))}
+        <Kpi tone="navy" value={cadres.length} label="Cadres suivis" icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /></svg>} />
+        <Kpi tone="gold" value={`${moyenneEquipe}%`} label="Avancement moyen équipe" icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" /></svg>} />
+        <Kpi tone="danger" value={alertes.length} label="Alertes ouvertes" icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M10.3 3.5 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.5a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></svg>} />
+        <Kpi tone="amber" value={activites.length} label="Activités à approuver" icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>} />
+        <Kpi tone="info" value={<>{rapportsRecus}<span className="text-lg text-brh-muted">/{cadres.length}</span></>} label="Rapports reçus (sem.)" icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" /><path d="M14 2v6h6" /></svg>} />
       </div>
 
       {/* À traiter */}
       <div className="grid gap-5 lg:grid-cols-2">
         {/* Activités à approuver */}
         <div>
-          <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-brh-text">Activités à approuver <span className="rounded-full bg-brh-bg px-2 py-0.5 text-[11px] font-medium text-brh-muted">{activites.length}</span></p>
+          <TitreSection titre="Activités à approuver" n={activites.length} />
           {activites.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-brh-border bg-white p-5 text-center text-sm text-brh-muted">Aucune activité en attente.</p>
           ) : (
@@ -163,7 +148,7 @@ export function DirectionAccueil({ nom, utilisateurId }: { nom: string; utilisat
 
         {/* Alertes ouvertes */}
         <div>
-          <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-brh-text">Alertes ouvertes <span className="rounded-full bg-brh-bg px-2 py-0.5 text-[11px] font-medium text-brh-muted">{alertes.length}</span></p>
+          <TitreSection titre="Alertes ouvertes" n={alertes.length} />
           {alertes.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-brh-border bg-white p-5 text-center text-sm text-brh-muted">Aucune alerte ouverte.</p>
           ) : (
@@ -191,7 +176,7 @@ export function DirectionAccueil({ nom, utilisateurId }: { nom: string; utilisat
 
       {/* Avancement moyen par cadre */}
       <div className="rounded-2xl border border-brh-border bg-white p-6 shadow-sm">
-        <p className="mb-4 text-xs font-bold uppercase tracking-wide text-brh-text">Avancement moyen par cadre</p>
+        <TitreSection titre="Avancement moyen par cadre" />
         {cadres.length === 0 ? (
           <p className="text-sm text-brh-muted">Aucun cadre enregistré.</p>
         ) : (
@@ -212,15 +197,14 @@ export function DirectionAccueil({ nom, utilisateurId }: { nom: string; utilisat
 
       {/* Suivi des cadres — rapports */}
       <div>
-        <p className="mb-3 text-xs font-bold uppercase tracking-wide text-brh-text">Suivi des cadres — rapports</p>
+        <TitreSection titre="Suivi des cadres — rapports" />
         <div className="overflow-hidden rounded-2xl border border-brh-border bg-white shadow-sm">
           {cadres.map((c, i) => {
             const s = statsCadre(c.id)
-            const initiales = c.nom.split(' ').map((m) => m[0]).slice(0, 2).join('').toUpperCase()
             return (
               <div key={c.id} className={`flex flex-wrap items-center justify-between gap-3 px-4 py-3 ${i > 0 ? 'border-t border-brh-border' : ''}`}>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brh-primary text-[11px] font-bold text-white">{initiales}</div>
+                  <Avatar nom={c.nom} />
                   <div><p className="text-sm font-semibold text-brh-text">{c.nom}</p><p className="text-[11px] text-brh-muted">{s.nbActions} action{s.nbActions > 1 ? 's' : ''}</p></div>
                 </div>
                 <div className="flex items-center gap-2">

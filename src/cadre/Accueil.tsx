@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
-import { citationDeLaSemaine } from '../citations'
+import { BandeauCitation, Kpi, TitreSection } from '../ui'
 
 const serif = { fontFamily: '"Fraunces", Georgia, "Times New Roman", serif' } as const
 
@@ -16,18 +16,10 @@ type Action = { titre: string; axe: string; statut: string; pct: number; echeanc
 // 🏠 Page d'accueil : citation, score, évolution, KPI et actions récentes
 export function Accueil({ nom, utilisateurId, onVoirActions }: { nom: string; utilisateurId?: string; onVoirActions: () => void }) {
   const prenom = nom.split(' ')[0]
-  const inspiration = citationDeLaSemaine()
   const salutation = new Date().getHours() < 18 ? 'Bonjour' : 'Bonsoir'
 
   const score = 82
   const couleurScore = score < 50 ? '#E39B9B' : '#12355B' // rouge pâle sous 50 %
-
-  const stats = [
-    { libelle: 'Actions en cours', valeur: '4', carte: 'bg-blue-50 border-blue-100', chiffre: 'text-blue-700' },
-    { libelle: 'Terminées', valeur: '2', carte: 'bg-green-50 border-green-100', chiffre: 'text-brh-success' },
-    { libelle: 'En retard', valeur: '1', carte: 'bg-orange-50 border-orange-100', chiffre: 'text-brh-warning' },
-    { libelle: 'Bloquées', valeur: '1', carte: 'bg-red-50 border-red-100', chiffre: 'text-brh-danger' },
-  ]
 
   // Évolution : 3 mois en semaines (Avril, Mai, Juin)
   const evolution = [55, 58, 60, 63, 64, 67, 70, 72, 74, 77, 80, 82]
@@ -64,19 +56,10 @@ export function Accueil({ nom, utilisateurId, onVoirActions }: { nom: string; ut
 
   return (
     <div className="space-y-6">
-      {/* Bandeau inspiration de la semaine */}
-      <div className="relative overflow-hidden rounded-xl px-4 py-3 text-white shadow-sm" style={{ background: 'linear-gradient(to right, #12355B, #0B2545)' }}>
-        <div className="flex items-baseline gap-2">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-brh-gold-light">
-            {inspiration.type === 'fait' ? 'Le sais-tu ?' : 'Citation'}
-          </span>
-          <span className="truncate text-[11px] text-brh-gold-light/80">— {inspiration.source}</span>
-        </div>
-        <p className="mt-1 max-w-3xl text-sm leading-snug text-white/90">« {inspiration.texte} »</p>
-      </div>
+      <BandeauCitation />
 
       <div>
-        <h1 className="text-2xl font-bold text-brh-primary" style={serif}>{salutation}, {prenom}</h1>
+        <h1 className="text-3xl font-bold text-brh-primary" style={serif}>{salutation}, {prenom}</h1>
         <p className="mt-1 text-sm text-brh-muted">Voici votre performance au sein de l'Unité d'Inclusion Financière.</p>
       </div>
 
@@ -120,19 +103,17 @@ export function Accueil({ nom, utilisateurId, onVoirActions }: { nom: string; ut
         </div>
       </div>
 
-      {/* Cartes KPI colorées */}
+      {/* Cartes KPI */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {stats.map((s) => (
-          <div key={s.libelle} className={`rounded-2xl border p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${s.carte}`}>
-            <p className="text-xs font-medium uppercase tracking-wide text-brh-muted">{s.libelle}</p>
-            <p className={`mt-2 text-3xl font-bold ${s.chiffre}`}>{s.valeur}</p>
-          </div>
-        ))}
+        <Kpi tone="info" value="4" label="Actions en cours" icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.9"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>} />
+        <Kpi tone="success" value="2" label="Terminées" icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><path d="M22 4 12 14.01l-3-3" /></svg>} />
+        <Kpi tone="amber" value="1" label="En retard" icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M10.3 3.5 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.5a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></svg>} />
+        <Kpi tone="danger" value="1" label="Bloquées" icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.9"><rect x="4" y="11" width="16" height="9" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>} />
       </div>
 
       <div>
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-brh-primary">Mes actions récentes</h3>
+        <div className="mb-1 flex items-center justify-between">
+          <TitreSection titre="Mes actions récentes" />
           <button onClick={onVoirActions} className="text-xs font-medium text-brh-primary hover:underline">Tout voir →</button>
         </div>
         {actions.length === 0 && (
