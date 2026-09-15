@@ -10,7 +10,7 @@
   --color-brh-secondary: #C9A227;
   --color-brh-gold-light: #E2C766;
   /* Neutres — légèrement tièdes pour ne pas paraître « froids » */
-  --color-brh-bg: #F4F6FA;           /* Fond de page */
+  --color-brh-bg: #EEF1F7;           /* Fond de page (contraste des cartes) */
   --color-brh-surface: #FFFFFF;      /* Cartes */
   --color-brh-text: #17233B;         /* Texte principal (contraste soigné) */
   --color-brh-muted: #64748B;        /* Texte secondaire */
@@ -34,9 +34,11 @@ body {
   margin: 0;
   color: var(--color-brh-text);
   font-family: var(--font-sans);
-  /* Fond raffiné : nuance neutre + un souffle d'or très discret en haut à droite */
+  /* Fond haut de gamme : deux voiles de lumière (or en haut, navy en bas) */
   background-color: var(--color-brh-bg);
-  background-image: radial-gradient(900px 480px at 108% -8%, rgba(201, 162, 39, 0.055), transparent 60%);
+  background-image:
+    radial-gradient(1100px 520px at 100% -10%, rgba(201, 162, 39, 0.07), transparent 55%),
+    radial-gradient(900px 500px at -10% 110%, rgba(18, 53, 91, 0.06), transparent 55%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

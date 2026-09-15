@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
-import { BandeauCitation, Kpi, TitreSection } from '../ui'
-
-const serif = { fontFamily: '"Fraunces", Georgia, "Times New Roman", serif' } as const
+import { Hero, Kpi, TitreSection } from '../ui'
 
 const STATUTS: Record<string, { label: string; cls: string }> = {
   en_cours: { label: 'En cours', cls: 'bg-blue-50 text-blue-700' },
@@ -56,12 +54,7 @@ export function Accueil({ nom, utilisateurId, onVoirActions }: { nom: string; ut
 
   return (
     <div className="space-y-6">
-      <BandeauCitation />
-
-      <div>
-        <h1 className="text-3xl font-bold text-brh-primary" style={serif}>{salutation}, {prenom}</h1>
-        <p className="mt-1 text-sm text-brh-muted">Voici votre performance au sein de l'Unité d'Inclusion Financière.</p>
-      </div>
+      <Hero salutation={salutation} nom={prenom} eyebrow="Unité d'Inclusion Financière" />
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="flex items-center gap-6 rounded-2xl border border-brh-border bg-white p-6 shadow-sm">

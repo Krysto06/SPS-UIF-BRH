@@ -2,9 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { couleurPct } from '../bareme'
 import { notifier } from '../notifs'
-import { BandeauCitation, Kpi, TitreSection, Avatar } from '../ui'
-
-const serif = { fontFamily: '"Fraunces", Georgia, "Times New Roman", serif' } as const
+import { Hero, AnneauPerf, Kpi, TitreSection, Avatar } from '../ui'
 
 type Cadre = { id: string; nom: string }
 type Action = { id: string; pourcentage: number; user_id: string | null }
@@ -105,17 +103,13 @@ export function DirectionAccueil({ nom, utilisateurId }: { nom: string; utilisat
 
   return (
     <div className="space-y-6">
-      <BandeauCitation />
-
-      <div>
-        <h1 className="text-3xl font-bold text-brh-primary" style={serif}>{salut}, {nom}</h1>
-        <p className="mt-1 text-sm text-brh-muted">Voici la vue d'ensemble du pilotage de l'Unité d'Inclusion Financière.</p>
-      </div>
+      <Hero salutation={salut} nom={nom} eyebrow="Unité d'Inclusion Financière · Trimestre 2"
+        right={<AnneauPerf value={moyenneEquipe} titre="Performance de l'Unité" sousTitre="Avancement consolidé de toutes les actions du trimestre." />} />
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <Kpi tone="navy" value={cadres.length} label="Cadres suivis" icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /></svg>} />
-        <Kpi tone="gold" value={`${moyenneEquipe}%`} label="Avancement moyen équipe" icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" /></svg>} />
+        <Kpi tone="gold" value={`${moyenneEquipe}%`} progress={moyenneEquipe} label="Avancement moyen équipe" icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" /></svg>} />
         <Kpi tone="danger" value={alertes.length} label="Alertes ouvertes" icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M10.3 3.5 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.5a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></svg>} />
         <Kpi tone="amber" value={activites.length} label="Activités à approuver" icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>} />
         <Kpi tone="info" value={<>{rapportsRecus}<span className="text-lg text-brh-muted">/{cadres.length}</span></>} label="Rapports reçus (sem.)" icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" /><path d="M14 2v6h6" /></svg>} />
