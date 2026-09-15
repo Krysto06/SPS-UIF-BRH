@@ -10,7 +10,7 @@
   --color-brh-secondary: #C9A227;
   --color-brh-gold-light: #E2C766;
   /* Neutres — légèrement tièdes pour ne pas paraître « froids » */
-  --color-brh-bg: #EEF1F7;           /* Fond de page (contraste des cartes) */
+  --color-brh-bg: #D5DCE8;           /* Fond de page plus profond (cartes qui ressortent) */
   --color-brh-surface: #FFFFFF;      /* Cartes */
   --color-brh-text: #17233B;         /* Texte principal (contraste soigné) */
   --color-brh-muted: #64748B;        /* Texte secondaire */
@@ -37,8 +37,8 @@ body {
   /* Fond haut de gamme : deux voiles de lumière (or en haut, navy en bas) */
   background-color: var(--color-brh-bg);
   background-image:
-    radial-gradient(1100px 520px at 100% -10%, rgba(201, 162, 39, 0.07), transparent 55%),
-    radial-gradient(900px 500px at -10% 110%, rgba(18, 53, 91, 0.06), transparent 55%);
+    radial-gradient(1100px 520px at 100% -10%, rgba(201, 162, 39, 0.09), transparent 55%),
+    radial-gradient(1000px 560px at -10% 110%, rgba(18, 53, 91, 0.10), transparent 55%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
