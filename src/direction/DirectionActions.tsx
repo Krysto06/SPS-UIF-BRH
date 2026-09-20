@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
 import { couleurPct, etapeDe, etapeCls } from '../bareme'
 
-const serif = { fontFamily: '"Fraunces", Georgia, "Times New Roman", serif' } as const
+const serif = { fontFamily: '"Manrope", "Inter", ui-sans-serif, sans-serif' } as const
 
 type Ligne = { id: string; nom: string; pct: number; cadre: string; axe: string }
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { notifier } from '../notifs'
 
-const serif = { fontFamily: '"Fraunces", Georgia, "Times New Roman", serif' } as const
+const serif = { fontFamily: '"Manrope", "Inter", ui-sans-serif, sans-serif' } as const
 const champ = 'w-full rounded-lg border border-brh-border bg-white px-3 py-2 text-sm text-brh-text outline-none transition focus:border-brh-primary focus:ring-4 focus:ring-brh-primary/10'
 const flabel = 'mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-brh-muted'
 

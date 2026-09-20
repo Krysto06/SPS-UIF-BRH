@@ -2,13 +2,13 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { notifierRole } from '../notifs'
 
-const serif = { fontFamily: '"Fraunces", Georgia, "Times New Roman", serif' } as const
+const serif = { fontFamily: '"Manrope", "Inter", ui-sans-serif, sans-serif' } as const
 const champ = 'w-full rounded-lg border border-brh-border bg-white px-3 py-2 text-sm text-brh-text outline-none transition focus:border-brh-primary focus:ring-4 focus:ring-brh-primary/10'
 const flabel = 'mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-brh-muted'
 
 type Demande = { id: string; type: string; objet: string; description: string | null; echeance: string | null; priorite: string; statut: string; reponse: string | null; created_at: string }
 
-const TYPES: Record<string, string> = { suivi: 'Suivi', dossier: 'Demande de dossier', tache: 'Tâche', rdv: 'Rendez-vous' }
+const TYPES: Record<string, string> = { suivi: 'Suivi', dossier: 'Demande de dossier', tache: 'Tâche', rdv: 'Rendez-vous', reunion: 'Planifier une réunion' }
 const STATUT: Record<string, { label: string; cls: string }> = {
   en_attente: { label: 'En attente', cls: 'bg-brh-warning/10 text-brh-warning' },
   repondue: { label: 'Répondue', cls: 'bg-brh-success/10 text-brh-success' },
@@ -65,7 +65,7 @@ export function DirectionSecretariat({ utilisateurId }: { utilisateurId?: string
           <div><label className={flabel}>Priorité</label><select value={f.priorite} onChange={(e) => setF({ ...f, priorite: e.target.value })} className={champ}><option value="normale">Normale</option><option value="urgente">Urgente</option></select></div>
           <div className="sm:col-span-2"><label className={flabel}>Objet</label><input value={f.objet} onChange={(e) => setF({ ...f, objet: e.target.value })} placeholder="Ex. : Préparer le dossier de la réunion du 18 sept." className={champ} /></div>
           <div className="sm:col-span-2"><label className={flabel}>Description</label><textarea value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} placeholder="Précisez ce qui est attendu…" className={champ + ' min-h-[60px] resize-y'} /></div>
-          <div><label className={flabel}>Échéance</label><input type="date" value={f.echeance} onChange={(e) => setF({ ...f, echeance: e.target.value })} className={champ} /></div>
+          <div><label className={flabel}>{f.type === 'reunion' ? 'Date de la réunion' : f.type === 'rdv' ? 'Date du rendez-vous' : 'Échéance'}</label><input type="date" value={f.echeance} onChange={(e) => setF({ ...f, echeance: e.target.value })} className={champ} /></div>
           {msg && <p className={`sm:col-span-2 rounded-lg px-3 py-2 text-sm ${msg.ok ? 'bg-brh-success/10 text-brh-success' : 'bg-brh-danger/10 text-brh-danger'}`}>{msg.t}</p>}
           <div className="flex items-end justify-end sm:col-span-2"><button onClick={envoyer} disabled={busy} className="rounded-lg bg-brh-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-brh-deep disabled:opacity-60">{busy ? 'Envoi…' : 'Envoyer au secrétariat'}</button></div>
         </div>

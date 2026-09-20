@@ -2,11 +2,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { notifier } from '../notifs'
 
-const serif = { fontFamily: '"Fraunces", Georgia, "Times New Roman", serif' } as const
+const serif = { fontFamily: '"Manrope", "Inter", ui-sans-serif, sans-serif' } as const
 const champ = 'w-full rounded-lg border border-brh-border bg-white px-3 py-2 text-sm text-brh-text outline-none transition focus:border-brh-primary focus:ring-4 focus:ring-brh-primary/10'
 const flabel = 'mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-brh-muted'
 
-type Evenement = { id: string; titre: string; date: string | null; lieu: string | null; description: string | null; statut: string }
+type Evenement = { id: string; titre: string; date: string | null; lieu: string | null; description: string | null; statut: string; type: string }
 type Tache = { id: string; evenement_id: string; titre: string; assigne_a: string | null; fait: boolean }
 type Cadre = { id: string; nom: string }
 
@@ -26,7 +26,7 @@ export function DirectionEvenements() {
   const [chargement, setChargement] = useState(true)
 
   const [ouvert, setOuvert] = useState(false)
-  const [f, setF] = useState({ titre: '', date: '', lieu: '', description: '' })
+  const [f, setF] = useState({ titre: '', date: '', lieu: '', description: '', type: 'evenement' })
   const [nvTache, setNvTache] = useState<Record<string, { titre: string; assigne: string }>>({})
   const [busy, setBusy] = useState<string | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
@@ -49,8 +49,8 @@ export function DirectionEvenements() {
   async function creerEvenement() {
     if (f.titre.trim() === '') { setMsg('Donne un titre à l’événement.'); return }
     setBusy('form')
-    await supabase.from('evenements').insert({ titre: f.titre.trim(), date: f.date || null, lieu: f.lieu.trim() || null, description: f.description.trim() || null, statut: 'a_venir' })
-    setBusy(null); setF({ titre: '', date: '', lieu: '', description: '' }); setOuvert(false); setMsg(null)
+    await supabase.from('evenements').insert({ titre: f.titre.trim(), date: f.date || null, lieu: f.lieu.trim() || null, description: f.description.trim() || null, statut: 'a_venir', type: f.type })
+    setBusy(null); setF({ titre: '', date: '', lieu: '', description: '', type: 'evenement' }); setOuvert(false); setMsg(null)
     await charger()
   }
   async function ajouterTache(ev: Evenement) {
@@ -80,7 +80,16 @@ export function DirectionEvenements() {
         <div className="rounded-2xl border border-brh-border bg-white shadow-sm">
           <div className="border-b border-brh-border/70 bg-gradient-to-b from-brh-primary/5 to-transparent px-5 py-3"><p className="font-semibold text-brh-text" style={serif}>Nouvel événement</p></div>
           <div className="grid gap-4 p-5 sm:grid-cols-2">
-            <div className="sm:col-span-2"><label className={flabel}>Titre de l'événement</label><input value={f.titre} onChange={(e) => setF({ ...f, titre: e.target.value })} placeholder="Ex. : Journée nationale de l'inclusion financière" className={champ} /></div>
+            <div className="sm:col-span-2">
+              <label className={flabel}>Nature</label>
+              <div className="flex gap-2">
+                {[{ v: 'evenement', l: 'Événement' }, { v: 'reunion', l: 'Réunion' }].map((o) => (
+                  <button key={o.v} type="button" onClick={() => setF({ ...f, type: o.v })}
+                    className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold transition ${f.type === o.v ? 'border-brh-primary bg-brh-primary/5 text-brh-primary' : 'border-brh-border bg-white text-brh-muted hover:bg-brh-bg'}`}>{o.l}</button>
+                ))}
+              </div>
+            </div>
+            <div className="sm:col-span-2"><label className={flabel}>{f.type === 'reunion' ? 'Objet de la réunion' : "Titre de l'événement"}</label><input value={f.titre} onChange={(e) => setF({ ...f, titre: e.target.value })} placeholder={f.type === 'reunion' ? 'Ex. : Réunion de coordination trimestrielle' : "Ex. : Journée nationale de l'inclusion financière"} className={champ} /></div>
             <div><label className={flabel}>Date</label><input type="date" value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} className={champ} /></div>
             <div><label className={flabel}>Lieu</label><input value={f.lieu} onChange={(e) => setF({ ...f, lieu: e.target.value })} placeholder="Ex. : Karibe Convention Center" className={champ} /></div>
             <div className="sm:col-span-2"><label className={flabel}>Description / objectif</label><textarea value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} className={champ + ' min-h-[60px] resize-y'} /></div>
@@ -103,7 +112,10 @@ export function DirectionEvenements() {
               <div key={ev.id} className="rounded-2xl border border-brh-border bg-white p-5 shadow-sm">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div><p className="font-semibold text-brh-text" style={serif}>{ev.titre}</p><p className="mt-0.5 text-xs text-brh-muted">{frDate(ev.date)}{ev.lieu ? ' · ' + ev.lieu : ''}</p></div>
-                  <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${st.cls}`}>{st.label}</span>
+                  <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+                    {ev.type === 'reunion' && <span className="rounded-full bg-brh-primary/10 px-2.5 py-0.5 text-[11px] font-medium text-brh-primary">Réunion</span>}
+                    <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${st.cls}`}>{st.label}</span>
+                  </div>
                 </div>
                 {ev.description && <p className="mt-2 text-sm text-brh-text/80">{ev.description}</p>}
 

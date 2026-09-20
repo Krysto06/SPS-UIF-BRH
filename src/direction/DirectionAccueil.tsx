@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabase'
-import { couleurPct } from '../bareme'
+import { couleurPersonne } from '../bareme'
 import { notifier } from '../notifs'
 import { Hero, AnneauPerf, Kpi, TitreSection, Avatar } from '../ui'
 
 type Cadre = { id: string; nom: string }
+type Membre = { id: string; nom: string; role: string }
 type Action = { id: string; pourcentage: number; user_id: string | null }
 type Alerte = { id: string; type: string; message: string; created_at: string; user_id: string | null; actions: { nom: string } | null }
 type Activite = { id: string; titre: string; type: string | null; date: string | null; user_id: string | null }
@@ -34,8 +35,9 @@ const TYPE_ALERTE: Record<string, { label: string; cls: string }> = {
 }
 
 // 🏛️ Tableau de bord de la direction — vue d'ensemble (données réelles)
-export function DirectionAccueil({ nom, utilisateurId }: { nom: string; utilisateurId?: string }) {
+export function DirectionAccueil({ nom }: { nom: string; utilisateurId?: string }) {
   const [cadres, setCadres] = useState<Cadre[]>([])
+  const [equipe, setEquipe] = useState<Membre[]>([])
   const [actions, setActions] = useState<Action[]>([])
   const [alertes, setAlertes] = useState<Alerte[]>([])
   const [activites, setActivites] = useState<Activite[]>([])
@@ -55,6 +57,8 @@ export function DirectionAccueil({ nom, utilisateurId }: { nom: string; utilisat
     const users = (uRes.data ?? []) as { id: string; nom: string; role: string }[]
     setNoms(Object.fromEntries(users.map((u) => [u.id, u.nom])))
     setCadres(users.filter((u) => u.role === 'cadre').map((u) => ({ id: u.id, nom: u.nom })))
+    // Équipe = cadres + secrétaire (pour l'avancement, la secrétaire est incluse)
+    setEquipe(users.filter((u) => u.role === 'cadre' || u.role === 'secretaire').map((u) => ({ id: u.id, nom: u.nom, role: u.role })))
     setActions((aRes.data ?? []) as Action[])
     setAlertes((alRes.data ?? []) as any)
     setActivites((acRes.data ?? []) as Activite[])
@@ -168,20 +172,25 @@ export function DirectionAccueil({ nom, utilisateurId }: { nom: string; utilisat
         </div>
       </div>
 
-      {/* Avancement moyen par cadre */}
+      {/* Avancement moyen de l'équipe (cadres + secrétaire) */}
       <div className="rounded-2xl border border-brh-border bg-white p-6 shadow-sm">
-        <TitreSection titre="Avancement moyen par cadre" />
-        {cadres.length === 0 ? (
-          <p className="text-sm text-brh-muted">Aucun cadre enregistré.</p>
+        <TitreSection titre="Avancement moyen de l'équipe" />
+        {equipe.length === 0 ? (
+          <p className="text-sm text-brh-muted">Aucun membre enregistré.</p>
         ) : (
-          <div className="space-y-3">
-            {cadres.map((c) => {
-              const s = statsCadre(c.id)
+          <div className="space-y-3.5">
+            {equipe.map((m) => {
+              const s = statsCadre(m.id)
+              const coul = couleurPersonne(m.nom)
               return (
-                <div key={c.id} className="grid grid-cols-[130px_1fr_44px] items-center gap-3">
-                  <span className="truncate text-sm font-medium text-brh-text" title={c.nom}>{c.nom}</span>
-                  <div className="h-2.5 overflow-hidden rounded-full bg-brh-bg"><div className="h-full rounded-full transition-all" style={{ width: `${s.moy}%`, background: couleurPct(s.moy) }} /></div>
-                  <span className="text-right text-sm font-bold tabular-nums" style={{ color: couleurPct(s.moy) }}>{s.moy}%</span>
+                <div key={m.id} className="grid grid-cols-[160px_1fr_44px] items-center gap-3">
+                  <span className="flex min-w-0 items-center gap-2 text-sm font-medium text-brh-text" title={m.nom}>
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: coul }} />
+                    <span className="truncate">{m.nom}</span>
+                    {m.role === 'secretaire' && <span className="shrink-0 rounded-full bg-brh-bg px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-brh-muted">Secr.</span>}
+                  </span>
+                  <div className="h-2.5 overflow-hidden rounded-full bg-brh-bg"><div className="h-full rounded-full transition-all" style={{ width: `${s.moy}%`, background: coul }} /></div>
+                  <span className="text-right text-sm font-bold tabular-nums" style={{ color: coul }}>{s.moy}%</span>
                 </div>
               )
             })}
@@ -198,7 +207,7 @@ export function DirectionAccueil({ nom, utilisateurId }: { nom: string; utilisat
             return (
               <div key={c.id} className={`flex flex-wrap items-center justify-between gap-3 px-4 py-3 ${i > 0 ? 'border-t border-brh-border' : ''}`}>
                 <div className="flex items-center gap-3">
-                  <Avatar nom={c.nom} />
+                  <Avatar nom={c.nom} couleur={couleurPersonne(c.nom)} />
                   <div><p className="text-sm font-semibold text-brh-text">{c.nom}</p><p className="text-[11px] text-brh-muted">{s.nbActions} action{s.nbActions > 1 ? 's' : ''}</p></div>
                 </div>
                 <div className="flex items-center gap-2">

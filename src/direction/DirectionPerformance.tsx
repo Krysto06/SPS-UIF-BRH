@@ -1,31 +1,30 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
-import { couleurPct } from '../bareme'
+import { couleurPct, couleurPersonne } from '../bareme'
+import { Avatar, TitreSection } from '../ui'
 
-const serif = { fontFamily: '"Fraunces", Georgia, "Times New Roman", serif' } as const
+const serif = { fontFamily: '"Manrope", "Inter", ui-sans-serif, sans-serif' } as const
 
-type Item = { pct: number; cadre: string; axe: string }
+type Item = { pct: number; user_id: string | null; axe: string }
+type Membre = { id: string; nom: string; role: string }
 
 function moyenne(vals: number[]): number { return vals.length === 0 ? 0 : Math.round(vals.reduce((s, v) => s + v, 0) / vals.length) }
-function grouper(items: Item[], cle: 'cadre' | 'axe') {
-  const acc: Record<string, number[]> = {}
-  items.forEach((i) => { (acc[i[cle]] ??= []).push(i.pct) })
-  return Object.entries(acc).map(([nom, vals]) => ({ nom, moy: moyenne(vals) })).sort((a, b) => b.moy - a.moy)
-}
 
-// 📈 Performance de l'UIF (direction) : vue globale + par cadre + par axe
+// 📈 Performance de l'UIF (direction) — vue globale + classement de l'équipe + axes
 export function DirectionPerformance() {
   const [items, setItems] = useState<Item[]>([])
+  const [membres, setMembres] = useState<Membre[]>([])
   const [chargement, setChargement] = useState(true)
 
   useEffect(() => {
     (async () => {
       const [uRes, aRes] = await Promise.all([
-        supabase.from('users').select('id, nom'),
+        supabase.from('users').select('id, nom, role'),
         supabase.from('actions').select('pourcentage, user_id, cadres_strategiques(nom)'),
       ])
-      const noms: Record<string, string> = {}; (uRes.data ?? []).forEach((u: any) => { noms[u.id] = u.nom })
-      setItems((aRes.data ?? []).map((a: any) => ({ pct: a.pourcentage ?? 0, cadre: noms[a.user_id] ?? '—', axe: a.cadres_strategiques?.nom ?? '—' })))
+      const users = (uRes.data ?? []) as any[]
+      setMembres(users.filter((u) => u.role === 'cadre' || u.role === 'secretaire').map((u) => ({ id: u.id, nom: u.nom, role: u.role })))
+      setItems((aRes.data ?? []).map((a: any) => ({ pct: a.pourcentage ?? 0, user_id: a.user_id, axe: a.cadres_strategiques?.nom ?? 'Sans axe' })))
       setChargement(false)
     })()
   }, [])
@@ -33,54 +32,121 @@ export function DirectionPerformance() {
   if (chargement) return <p className="text-center text-sm text-brh-muted">Chargement de la performance…</p>
 
   const globale = moyenne(items.map((i) => i.pct))
-  const parCadre = grouper(items, 'cadre')
-  const parAxe = grouper(items, 'axe')
 
-  // Jauge circulaire
-  const rayon = 54, circ = 2 * Math.PI * rayon, offset = circ * (1 - globale / 100), coul = couleurPct(globale)
+  // Classement de l'équipe (cadres + secrétaire), trié par avancement
+  const classement = membres.map((m) => {
+    const acts = items.filter((i) => i.user_id === m.id)
+    return { ...m, moy: moyenne(acts.map((a) => a.pct)), nb: acts.length }
+  }).sort((a, b) => b.moy - a.moy)
+  const maxMembre = classement.length === 0 ? 0 : Math.max(...classement.map((c) => c.moy))
 
-  const Barres = ({ titre, data }: { titre: string; data: { nom: string; moy: number }[] }) => (
-    <div className="rounded-2xl border border-brh-border bg-white p-6 shadow-sm">
-      <p className="mb-4 text-xs font-bold uppercase tracking-wide text-brh-text">{titre}</p>
-      {data.length === 0 ? <p className="text-sm text-brh-muted">Aucune donnée.</p> : (
-        <div className="space-y-3">
-          {data.map((d) => (
-            <div key={d.nom} className="grid grid-cols-[140px_1fr_44px] items-center gap-3">
-              <span className="truncate text-sm font-medium text-brh-text" title={d.nom}>{d.nom}</span>
-              <div className="h-2.5 overflow-hidden rounded-full bg-brh-bg"><div className="h-full rounded-full transition-all" style={{ width: `${d.moy}%`, background: couleurPct(d.moy) }} /></div>
-              <span className="text-right text-sm font-bold tabular-nums" style={{ color: couleurPct(d.moy) }}>{d.moy}%</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
+  // Par axe stratégique
+  const axeAcc: Record<string, number[]> = {}
+  items.forEach((i) => { (axeAcc[i.axe] ??= []).push(i.pct) })
+  const parAxe = Object.entries(axeAcc).map(([nom, vals]) => ({ nom, moy: moyenne(vals), nb: vals.length })).sort((a, b) => b.moy - a.moy)
+
+  // Grande jauge circulaire (dégradé or)
+  const R = 78, C = 2 * Math.PI * R, off = C * (1 - globale / 100)
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <div><h1 className="text-2xl font-bold text-brh-primary" style={serif}>Performance de l'UIF</h1><p className="mt-1 text-sm text-brh-muted">Performance globale de l'Unité et avancement par cadre et par axe stratégique.</p></div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        {/* Jauge globale */}
-        <div className="flex items-center gap-5 rounded-2xl border border-brh-border bg-white p-6 shadow-sm">
-          <div className="relative shrink-0" style={{ height: 124, width: 124 }}>
-            <svg viewBox="0 0 124 124" className="h-31 w-31 -rotate-90" style={{ height: 124, width: 124 }}>
-              <circle cx="62" cy="62" r={rayon} fill="none" stroke="#e2e8f0" strokeWidth="12" />
-              <circle cx="62" cy="62" r={rayon} fill="none" stroke={coul} strokeWidth="12" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset} />
+    <div className="mx-auto max-w-5xl space-y-7">
+      {/* ── Bandeau héro : jauge globale + repères ── */}
+      <div className="relative overflow-hidden rounded-[26px] px-6 py-7 text-white shadow-lg sm:px-9" style={{ background: 'linear-gradient(135deg,#12355B,#081A31)' }}>
+        <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(600px 320px at 108% -20%, rgba(201,162,39,0.28), transparent 60%)' }} />
+        <div className="relative flex flex-col items-center gap-7 sm:flex-row sm:gap-10">
+          {/* Jauge */}
+          <div className="relative shrink-0" style={{ height: 188, width: 188 }}>
+            <svg width="188" height="188" viewBox="0 0 188 188" style={{ transform: 'rotate(-90deg)' }}>
+              <defs>
+                <linearGradient id="perfGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#E2C766" /><stop offset="1" stopColor="#C9A227" /></linearGradient>
+              </defs>
+              <circle cx="94" cy="94" r={R} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="16" />
+              <circle cx="94" cy="94" r={R} fill="none" stroke="url(#perfGrad)" strokeWidth="16" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={off} style={{ transition: 'stroke-dashoffset 1s ease' }} />
             </svg>
-            <div className="absolute inset-0 flex items-center justify-center"><span className="text-3xl font-bold" style={{ ...serif, color: coul }}>{globale}%</span></div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-[52px] font-extrabold leading-none tracking-tight" style={serif}>{globale}<span className="text-2xl font-bold text-white/70">%</span></span>
+              <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brh-gold-light">Performance globale</span>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-semibold text-brh-text/80">Performance globale</p>
-            <p className="mt-0.5 text-xs text-brh-muted">{items.length} action{items.length > 1 ? 's' : ''} · {parCadre.length} cadre{parCadre.length > 1 ? 's' : ''}</p>
+          {/* Repères */}
+          <div className="flex-1">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-brh-gold-light">Unité d'Inclusion Financière · Trimestre 2</p>
+            <h1 className="mt-2 text-[26px] font-bold leading-tight" style={serif}>Tableau de performance</h1>
+            <p className="mt-1.5 max-w-md text-sm leading-relaxed text-white/70">Avancement consolidé de toutes les actions du trimestre, membre par membre et par axe stratégique.</p>
+            <div className="mt-5 grid grid-cols-3 gap-3">
+              {[
+                { v: items.length, l: 'Actions suivies' },
+                { v: classement.length, l: 'Membres' },
+                { v: `${maxMembre}%`, l: 'Meilleur avancement' },
+              ].map((s) => (
+                <div key={s.l} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 backdrop-blur">
+                  <p className="text-2xl font-bold leading-none" style={serif}>{s.v}</p>
+                  <p className="mt-1 text-[10.5px] leading-tight text-white/60">{s.l}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-
-        {/* Par axe (dans la même rangée) */}
-        <div className="lg:col-span-2"><Barres titre="Par cadre stratégique (axe)" data={parAxe} /></div>
       </div>
 
-      <Barres titre="Avancement par cadre" data={parCadre} />
+      {/* ── Classement de l'équipe ── */}
+      <div className="rounded-2xl border border-brh-border bg-white p-6 shadow-sm">
+        <TitreSection titre="Classement de l'équipe" n={classement.length} />
+        {classement.length === 0 ? <p className="text-sm text-brh-muted">Aucun membre enregistré.</p> : (
+          <div className="space-y-4">
+            {classement.map((c, i) => {
+              const coul = couleurPersonne(c.nom)
+              return (
+                <div key={c.id} className="flex items-center gap-3.5">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[12px] font-bold tabular-nums text-white shadow-sm" style={{ background: coul }}>{i + 1}</span>
+                  <Avatar nom={c.nom} couleur={coul} size={40} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="flex items-center gap-2 truncate text-sm font-semibold text-brh-text">
+                        {c.nom}
+                        {c.role === 'secretaire' && <span className="shrink-0 rounded-full bg-brh-bg px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-brh-muted">Secrétaire</span>}
+                      </p>
+                      <span className="shrink-0 text-lg font-bold tabular-nums" style={{ ...serif, color: coul }}>{c.moy}%</span>
+                    </div>
+                    <div className="mt-1.5 h-3 overflow-hidden rounded-full bg-brh-bg">
+                      <div className="h-full rounded-full" style={{ width: `${c.moy}%`, background: `linear-gradient(90deg,${coul}cc,${coul})`, transition: 'width 0.9s ease' }} />
+                    </div>
+                    <p className="mt-1 text-[11px] text-brh-muted">{c.nb} action{c.nb > 1 ? 's' : ''} suivie{c.nb > 1 ? 's' : ''}</p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ── Par axe stratégique ── */}
+      <div className="rounded-2xl border border-brh-border bg-white p-6 shadow-sm">
+        <TitreSection titre="Avancement par axe stratégique" n={parAxe.length} />
+        {parAxe.length === 0 ? <p className="text-sm text-brh-muted">Aucune donnée.</p> : (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {parAxe.map((a) => {
+              const coul = couleurPct(a.moy)
+              const r = 30, c = 2 * Math.PI * r, o = c * (1 - a.moy / 100)
+              return (
+                <div key={a.nom} className="flex items-center gap-4 rounded-2xl border border-brh-border bg-brh-bg/40 p-4">
+                  <div className="relative shrink-0" style={{ height: 76, width: 76 }}>
+                    <svg width="76" height="76" viewBox="0 0 76 76" style={{ transform: 'rotate(-90deg)' }}>
+                      <circle cx="38" cy="38" r={r} fill="none" stroke="#E6EBF2" strokeWidth="8" />
+                      <circle cx="38" cy="38" r={r} fill="none" stroke={coul} strokeWidth="8" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={o} style={{ transition: 'stroke-dashoffset 0.9s ease' }} />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center"><span className="text-sm font-bold tabular-nums" style={{ ...serif, color: coul }}>{a.moy}%</span></div>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold leading-snug text-brh-text">{a.nom}</p>
+                    <p className="mt-0.5 text-[11px] text-brh-muted">{a.nb} action{a.nb > 1 ? 's' : ''}</p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

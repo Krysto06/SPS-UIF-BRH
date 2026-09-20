@@ -6,7 +6,7 @@ import { chargerSousActions, ajouterSousAction, basculerSousAction, supprimerSou
 const champ =
   'w-full rounded-lg border border-brh-border bg-white px-4 py-2.5 text-sm text-brh-text outline-none transition placeholder:text-brh-muted/60 focus:border-brh-primary focus:ring-4 focus:ring-brh-primary/10'
 const label = 'mb-1.5 block text-xs font-semibold uppercase tracking-wide text-brh-muted'
-const serif = { fontFamily: '"Fraunces", Georgia, "Times New Roman", serif' } as const
+const serif = { fontFamily: '"Manrope", "Inter", ui-sans-serif, sans-serif' } as const
 
 const STATUTS: Record<string, { label: string; cls: string }> = {
   en_cours: { label: 'En cours', cls: 'bg-blue-50 text-blue-700' },

@@ -40,3 +40,15 @@ export function couleurPct(pct: number): string {
   if (pct >= 25) return '#D97706'  // orange — démarrée
   return '#DC6B6B'                 // rouge doux — pas commencée
 }
+
+// ── Couleur fixe par personne (identité visuelle de chaque membre) ──
+// Chaque membre garde SA couleur partout (barres, avatars, points de graphe).
+export function couleurPersonne(nom: string): string {
+  const n = (nom ?? '').toLowerCase()
+  if (n.includes('siguineau')) return '#7C3AED'   // Siguineau Wilbens — mauve/violet
+  if (n.includes('victor')) return '#2563EB'      // Victor Ann Valery — bleu
+  if (n.includes('krystofia') || n.includes('elien')) return '#1E7A46' // Elien Krystofia — vert
+  if (n.includes('jimy') || n.includes('dorsainvil')) return '#D97706' // Dorsainvil Jimy — orange
+  if (n.includes('bolivar')) return '#B4232A'     // Bolivar Ann Chrissy (secrétaire) — rouge
+  return '#12355B'                                // défaut — navy institutionnel
+}

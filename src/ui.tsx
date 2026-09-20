@@ -1,7 +1,32 @@
 import { useState, type ReactNode } from 'react'
 import { citationDeLaSemaine } from './citations'
 
-const serif = { fontFamily: '"Fraunces", Georgia, "Times New Roman", serif' } as const
+// Police d'affichage — Manrope : géométrique, droite, professionnelle
+const serif = { fontFamily: '"Manrope", "Inter", ui-sans-serif, sans-serif' } as const
+
+// ── Repères temporels partagés (date du jour · année fiscale · trimestre) ──
+const MOIS_LONG = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+const JOURS_LONG = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi']
+export const ANNEE_FISCALE = '2026–2027'
+export const TRIMESTRE = 'Trimestre 2'
+export function dateDuJour(): string {
+  const d = new Date()
+  return `${JOURS_LONG[d.getDay()]} ${d.getDate()} ${MOIS_LONG[d.getMonth()]} ${d.getFullYear()}`
+}
+
+// Bandeau d'en-tête commun à toutes les interfaces (cadre + direction)
+export function EnteteInfos() {
+  return (
+    <div className="hidden items-center gap-2 sm:flex">
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-brh-border bg-white px-3 py-1 text-xs font-medium text-brh-text shadow-sm">
+        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-brh-secondary" fill="none" stroke="currentColor" strokeWidth="1.9"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+        <span className="capitalize">{dateDuJour()}</span>
+      </span>
+      <span className="rounded-full bg-brh-primary/5 px-3 py-1 text-xs font-medium text-brh-primary">Année fiscale {ANNEE_FISCALE}</span>
+      <span className="rounded-full bg-brh-secondary/15 px-3 py-1 text-xs font-medium text-brh-primary">{TRIMESTRE}</span>
+    </div>
+  )
+}
 
 // 🏛️ Logo BRH : affiche l'image si elle existe (public/logo-brh.jpg), sinon un écusson « BRH »
 export function Logo({ size = 40 }: { size?: number }) {
@@ -72,7 +97,7 @@ const TONES: Record<string, { chip: string; val: string; bar: string }> = {
   success: { chip: 'bg-brh-success/10 text-brh-success', val: 'text-brh-success', bar: '#1E7A46' },
 }
 
-// ── Tuile / KPI premium (icône + grand chiffre Fraunces + pied optionnel) ──
+// ── Tuile / KPI premium (icône + grand chiffre + pied optionnel) ──
 export function Kpi({ icon, value, label, tone = 'navy', progress }: { icon: ReactNode; value: ReactNode; label: string; tone?: string; progress?: number }) {
   const t = TONES[tone] ?? TONES.navy
   return (
@@ -102,7 +127,7 @@ export function BandeauCitation() {
   )
 }
 
-// ── Titre de section (repère doré lumineux + Fraunces + compteur / action) ──
+// ── Titre de section (repère doré lumineux + compteur / action) ──
 export function TitreSection({ titre, n, action }: { titre: string; n?: number; action?: ReactNode }) {
   return (
     <div className="mb-3.5 flex items-center gap-3">
@@ -115,10 +140,16 @@ export function TitreSection({ titre, n, action }: { titre: string; n?: number; 
 }
 
 // ── Avatar carré arrondi avec dégradé (initiales) ──
-export function Avatar({ nom, gold = false, size = 36 }: { nom: string; gold?: boolean; size?: number }) {
+// `couleur` : impose la couleur d'identité de la personne (prioritaire sur `gold`).
+export function Avatar({ nom, gold = false, size = 36, couleur }: { nom: string; gold?: boolean; size?: number; couleur?: string }) {
   const initiales = nom.split(' ').map((m) => m[0]).slice(0, 2).join('').toUpperCase()
+  const fond = couleur
+    ? { background: `linear-gradient(135deg,${couleur},${couleur}cc)`, color: '#fff' }
+    : gold
+      ? { background: 'linear-gradient(135deg,#C9A227,#E2C766)', color: '#12355B' }
+      : { background: 'linear-gradient(135deg,#12355B,#1d4c7c)', color: '#fff' }
   return (
-    <div className="flex shrink-0 items-center justify-center rounded-xl text-[11px] font-bold shadow-sm" style={{ height: size, width: size, ...(gold ? { background: 'linear-gradient(135deg,#C9A227,#E2C766)', color: '#12355B' } : { background: 'linear-gradient(135deg,#12355B,#1d4c7c)', color: '#fff' }) }}>
+    <div className="flex shrink-0 items-center justify-center rounded-xl text-[11px] font-bold shadow-sm" style={{ height: size, width: size, ...fond }}>
       {initiales}
     </div>
   )

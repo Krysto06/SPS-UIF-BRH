@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Cloche } from '../Notifications'
-import { Logo } from '../ui'
+import { Logo, EnteteInfos } from '../ui'
 import { DirectionAccueil } from './DirectionAccueil'
 import { DirectionSemaine } from './DirectionSemaine'
 import { DirectionActions } from './DirectionActions'
@@ -34,13 +34,6 @@ function Icone({ nom }: { nom: string }) {
     case 'perf': return (<svg {...c}><path d="M3 3v18h18" /><rect x="7" y="11" width="3" height="7" rx="0.5" /><rect x="12" y="7" width="3" height="11" rx="0.5" /><rect x="17" y="4" width="3" height="14" rx="0.5" /></svg>)
     default: return null
   }
-}
-
-const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
-const JOURS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi']
-function dateDuJour(): string {
-  const d = new Date()
-  return `${JOURS[d.getDay()]} ${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()}`
 }
 
 // Placeholder pour les pages pas encore construites
@@ -111,10 +104,7 @@ export function DirectionShell({ nom, utilisateurId, onDeconnexion }: Props) {
             <h2 className="text-base font-semibold text-brh-primary">{titrePage} <span className="font-normal text-brh-muted">— UIF</span></h2>
           </div>
           <div className="flex items-center gap-2">
-            <span className="hidden items-center gap-1.5 rounded-full bg-brh-bg px-3 py-1 text-xs font-medium text-brh-muted sm:inline-flex">
-              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
-              {dateDuJour()}
-            </span>
+            <EnteteInfos />
             <Cloche utilisateurId={utilisateurId} onNaviguer={(l) => {
               const map: Record<string, string> = { activites: 'activite', alertes: 'tableau', semaine: 'semaine', secretariat: 'secretariat', event: 'event', actions: 'actions', tableau: 'tableau' }
               setPageActive(map[l] ?? 'tableau')

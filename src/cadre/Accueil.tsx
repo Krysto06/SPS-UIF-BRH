@@ -25,7 +25,7 @@ export function Accueil({ nom, utilisateurId, onVoirActions }: { nom: string; ut
   const cx = (i: number) => 14 + (i * (332 / (n - 1)))
   const cy = (v: number) => 108 - (v / 100) * 86
   const pts = evolution.map((v, i) => `${cx(i)},${cy(v)}`).join(' ')
-  const aire = `M${cx(0)},108 L${pts.replaceAll(' ', ' L')} L${cx(n - 1)},108 Z`
+  const aire = `M${cx(0)},108 L${pts.split(' ').join(' L')} L${cx(n - 1)},108 Z`
 
   const rayon = 52
   const circ = 2 * Math.PI * rayon
