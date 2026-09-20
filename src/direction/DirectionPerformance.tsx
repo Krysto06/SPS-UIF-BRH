@@ -54,18 +54,31 @@ export function DirectionPerformance() {
       <div className="relative overflow-hidden rounded-[26px] px-6 py-7 text-white shadow-lg sm:px-9" style={{ background: 'linear-gradient(135deg,#12355B,#081A31)' }}>
         <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(600px 320px at 108% -20%, rgba(201,162,39,0.28), transparent 60%)' }} />
         <div className="relative flex flex-col items-center gap-7 sm:flex-row sm:gap-10">
-          {/* Jauge */}
-          <div className="relative shrink-0" style={{ height: 188, width: 188 }}>
-            <svg width="188" height="188" viewBox="0 0 188 188" style={{ transform: 'rotate(-90deg)' }}>
+          {/* Jauge globale */}
+          <div className="relative shrink-0" style={{ height: 196, width: 196 }}>
+            {/* halo doré diffus */}
+            <div className="pointer-events-none absolute inset-0 rounded-full" style={{ background: 'radial-gradient(circle at 50% 50%, rgba(201,162,39,0.30), transparent 62%)', filter: 'blur(7px)' }} />
+            <svg width="196" height="196" viewBox="0 0 196 196" style={{ transform: 'rotate(-90deg)' }}>
               <defs>
-                <linearGradient id="perfGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#E2C766" /><stop offset="1" stopColor="#C9A227" /></linearGradient>
+                <linearGradient id="perfGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#F1DA8C" /><stop offset="0.55" stopColor="#E2C766" /><stop offset="1" stopColor="#C9A227" /></linearGradient>
+                <filter id="perfGlow" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="0" stdDeviation="3.5" floodColor="#C9A227" floodOpacity="0.55" /></filter>
               </defs>
-              <circle cx="94" cy="94" r={R} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="16" />
-              <circle cx="94" cy="94" r={R} fill="none" stroke="url(#perfGrad)" strokeWidth="16" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={off} style={{ transition: 'stroke-dashoffset 1s ease' }} />
+              {/* fin liseré extérieur (bezel) */}
+              <circle cx="98" cy="98" r={R + 12} fill="none" stroke="rgba(201,162,39,0.22)" strokeWidth="1" />
+              {/* piste */}
+              <circle cx="98" cy="98" r={R} fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="13" />
+              {/* progression */}
+              <circle cx="98" cy="98" r={R} fill="none" stroke="url(#perfGrad)" strokeWidth="13" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={off} filter="url(#perfGlow)" style={{ transition: 'stroke-dashoffset 1.1s cubic-bezier(.22,1,.36,1)' }} />
             </svg>
+            {/* point de tête doré (position réelle de fin d'arc) */}
+            <svg width="196" height="196" viewBox="0 0 196 196" className="absolute inset-0">
+              <circle cx={98 + R * Math.cos((-90 + 3.6 * globale) * Math.PI / 180)} cy={98 + R * Math.sin((-90 + 3.6 * globale) * Math.PI / 180)} r="5.5" fill="#fff" stroke="#C9A227" strokeWidth="1.5" />
+            </svg>
+            {/* centre — chiffre + label à l'intérieur */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-[52px] font-extrabold leading-none tracking-tight" style={serif}>{globale}<span className="text-2xl font-bold text-white/70">%</span></span>
-              <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brh-gold-light">Performance globale</span>
+              <span className="text-[56px] font-extrabold leading-none tracking-tight" style={serif}>{globale}<span className="align-top text-xl font-bold text-brh-gold-light">%</span></span>
+              <span className="mt-2.5 h-px w-9 bg-brh-gold-light/60" />
+              <span className="mt-2 text-[9.5px] font-semibold uppercase tracking-[0.28em] text-brh-gold-light">Performance globale</span>
             </div>
           </div>
           {/* Repères */}
