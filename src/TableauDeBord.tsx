@@ -8,6 +8,8 @@ import { EvenementsCadre } from './cadre/EvenementsCadre'
 import { PerformanceCadre } from './cadre/PerformanceCadre'
 import { SecretariatSecretaire } from './secretaire/SecretariatSecretaire'
 import { Documentation } from './commun/Documentation'
+import { VeilleUIF } from './commun/VeilleUIF'
+import { Reunions } from './commun/Reunions'
 import { Cloche } from './Notifications'
 import { Logo, EnteteInfos } from './ui'
 import { useNotifsSections } from './useNotifs'
@@ -25,6 +27,8 @@ function Icone({ nom, className = 'h-5 w-5' }: { nom: string; className?: string
     case 'semaine': return (<svg {...c}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>)
     case 'alertes': return (<svg {...c}><path d="M10.3 3.5 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.5a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>)
     case 'secretariat': return (<svg {...c}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" /><path d="M14 2v6h6" /><path d="M9 13h6M9 17h4" /></svg>)
+    case 'reunions': return (<svg {...c}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>)
+    case 'veille': return (<svg {...c}><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>)
     case 'documentation': return (<svg {...c}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" /></svg>)
     default: return null
   }
@@ -38,7 +42,9 @@ const MENU_CADRE = [
   { id: 'alertes', label: 'Alertes' },
   { id: 'activites', label: 'Activité' },
   { id: 'evenements', label: "Événement de l'UIF" },
+  { id: 'reunions', label: 'Réunions' },
   { id: 'performance', label: "Performance de l'UIF" },
+  { id: 'veille', label: 'Veille UIF' },
   { id: 'documentation', label: 'Documentation' },
 ]
 const MENU_SECRETAIRE = [
@@ -48,14 +54,17 @@ const MENU_SECRETAIRE = [
   { id: 'alertes', label: 'Alertes' },
   { id: 'activites', label: 'Activité' },
   { id: 'evenements', label: "Événement de l'UIF" },
+  { id: 'reunions', label: 'Réunions' },
   { id: 'secretariat', label: 'Secrétariat' },
+  { id: 'veille', label: 'Veille UIF' },
   { id: 'documentation', label: 'Documentation' },
 ]
 
 // Correspondance section → liens de notification (pour la pastille sur la partie)
 const LIENS: Record<string, string[]> = {
   semaine: ['semaine'], actions: ['actions'], alertes: ['alertes'], activites: ['activites'],
-  evenements: ['event'], secretariat: ['secretariat'], documentation: ['documentation'],
+  evenements: ['event'], reunions: ['reunions'], secretariat: ['secretariat'],
+  veille: ['veille'], documentation: ['documentation'],
 }
 
 export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, onDeconnexion }: Props) {
@@ -144,10 +153,14 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, on
             <Activite utilisateurId={utilisateurId} />
           ) : pageActive === 'evenements' ? (
             <EvenementsCadre utilisateurId={utilisateurId} />
+          ) : pageActive === 'reunions' ? (
+            <Reunions utilisateurId={utilisateurId} peutGerer={estSecretaire} />
           ) : pageActive === 'performance' ? (
             <PerformanceCadre />
           ) : pageActive === 'secretariat' ? (
             <SecretariatSecretaire utilisateurId={utilisateurId} />
+          ) : pageActive === 'veille' ? (
+            <VeilleUIF utilisateurId={utilisateurId} />
           ) : pageActive === 'documentation' ? (
             <Documentation utilisateurId={utilisateurId} />
           ) : null}
