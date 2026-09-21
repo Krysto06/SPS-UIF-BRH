@@ -4,9 +4,13 @@ import { MaSemaine } from './cadre/MaSemaine'
 import { MesActions } from './cadre/MesActions'
 import { Alertes } from './cadre/Alertes'
 import { Activite } from './cadre/Activite'
-import { AttribuerAction } from './admin/AttribuerAction'
+import { EvenementsCadre } from './cadre/EvenementsCadre'
+import { PerformanceCadre } from './cadre/PerformanceCadre'
+import { SecretariatSecretaire } from './secretaire/SecretariatSecretaire'
+import { Documentation } from './commun/Documentation'
 import { Cloche } from './Notifications'
 import { Logo, EnteteInfos } from './ui'
+import { useNotifsSections } from './useNotifs'
 
 type Props = { nom: string; role?: string; utilisateurId?: string; onDeconnexion: () => void }
 
@@ -19,13 +23,15 @@ function Icone({ nom, className = 'h-5 w-5' }: { nom: string; className?: string
     case 'evenements': return (<svg {...c}><path d="M12 2.5l2.7 5.6 6.1.5-4.6 4 1.4 6-5.6-3.3-5.6 3.3 1.4-6-4.6-4 6.1-.5z" /></svg>)
     case 'performance': return (<svg {...c}><path d="M3 3v18h18" /><rect x="7" y="11" width="3" height="7" rx="0.5" /><rect x="12" y="7" width="3" height="11" rx="0.5" /><rect x="17" y="4" width="3" height="14" rx="0.5" /></svg>)
     case 'semaine': return (<svg {...c}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>)
-    case 'attribuer': return (<svg {...c}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M19 8v6" /><path d="M22 11h-6" /></svg>)
     case 'alertes': return (<svg {...c}><path d="M10.3 3.5 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.5a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>)
+    case 'secretariat': return (<svg {...c}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" /><path d="M14 2v6h6" /><path d="M9 13h6M9 17h4" /></svg>)
+    case 'documentation': return (<svg {...c}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" /></svg>)
     default: return null
   }
 }
 
-const MENU = [
+// Menu selon le rôle
+const MENU_CADRE = [
   { id: 'tableau', label: 'Tableau de bord' },
   { id: 'semaine', label: 'Ma semaine' },
   { id: 'actions', label: 'Mes actions du trimestre' },
@@ -33,20 +39,42 @@ const MENU = [
   { id: 'activites', label: 'Activité' },
   { id: 'evenements', label: "Événement de l'UIF" },
   { id: 'performance', label: "Performance de l'UIF" },
+  { id: 'documentation', label: 'Documentation' },
 ]
+const MENU_SECRETAIRE = [
+  { id: 'tableau', label: 'Tableau de bord' },
+  { id: 'semaine', label: 'Ma semaine' },
+  { id: 'actions', label: 'Mes actions du trimestre' },
+  { id: 'alertes', label: 'Alertes' },
+  { id: 'activites', label: 'Activité' },
+  { id: 'evenements', label: "Événement de l'UIF" },
+  { id: 'secretariat', label: 'Secrétariat' },
+  { id: 'documentation', label: 'Documentation' },
+]
+
+// Correspondance section → liens de notification (pour la pastille sur la partie)
+const LIENS: Record<string, string[]> = {
+  semaine: ['semaine'], actions: ['actions'], alertes: ['alertes'], activites: ['activites'],
+  evenements: ['event'], secretariat: ['secretariat'], documentation: ['documentation'],
+}
 
 export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, onDeconnexion }: Props) {
   const [pageActive, setPageActive] = useState('tableau')
   const [menuOuvert, setMenuOuvert] = useState(false)
+  const { parLien, marquerLu } = useNotifsSections(utilisateurId)
 
-  // L'Admin voit une entrée supplémentaire pour attribuer des actions
-  const estAdmin = role === 'admin'
-  const menu = estAdmin
-    ? [...MENU.slice(0, 3), { id: 'attribuer', label: 'Attribuer une action' }, ...MENU.slice(3)]
-    : MENU
+  const estSecretaire = role === 'secretaire'
+  const menu = estSecretaire ? MENU_SECRETAIRE : MENU_CADRE
+  const roleLabel = estSecretaire ? 'Secrétaire' : role
 
   const initiales = nom.split(' ').map((m) => m[0]).slice(0, 2).join('').toUpperCase()
   const titrePage = menu.find((m) => m.id === pageActive)?.label ?? ''
+
+  function ouvrirSection(id: string) {
+    setPageActive(id); setMenuOuvert(false)
+    if (LIENS[id]) marquerLu(LIENS[id])
+  }
+  function badge(id: string) { return (LIENS[id] ?? []).reduce((s, l) => s + (parLien[l] ?? 0), 0) }
 
   return (
     <div className="min-h-screen bg-brh-bg lg:flex">
@@ -61,15 +89,17 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, on
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 px-3 py-4">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
           {menu.map((m) => {
             const actif = m.id === pageActive
+            const n = badge(m.id)
             return (
-              <button key={m.id} onClick={() => { setPageActive(m.id); setMenuOuvert(false) }}
+              <button key={m.id} onClick={() => ouvrirSection(m.id)}
                 className={`relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${actif ? 'bg-white/10 font-semibold text-white' : 'font-medium text-white/60 hover:bg-white/5 hover:text-white'}`}>
                 {actif && <span className="absolute -left-3 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-brh-gold-light" />}
                 <Icone nom={m.id} className="h-5 w-5 shrink-0" />
-                {m.label}
+                <span className="flex-1 text-left">{m.label}</span>
+                {n > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brh-danger px-1.5 text-[10px] font-bold text-white">{n}</span>}
               </button>
             )
           })}
@@ -80,7 +110,7 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, on
             <div className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-brh-primary shadow-sm" style={{ background: 'linear-gradient(135deg,#C9A227,#E2C766)' }}>{initiales}</div>
             <div className="min-w-0 leading-tight">
               <p className="truncate text-sm font-medium">{nom}</p>
-              <p className="truncate text-[11px] text-white/50">{role}</p>
+              <p className="truncate text-[11px] text-white/50">{roleLabel}</p>
             </div>
           </div>
           <button onClick={onDeconnexion} className="mt-3 w-full rounded-lg border border-white/15 px-3 py-2 text-xs font-medium text-white/80 transition-colors hover:bg-white/10">Déconnexion</button>
@@ -97,15 +127,13 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, on
           </div>
           <div className="flex items-center gap-2">
             <EnteteInfos />
-            <Cloche utilisateurId={utilisateurId} onNaviguer={(l) => setPageActive(l)} />
+            <Cloche utilisateurId={utilisateurId} onNaviguer={(l) => ouvrirSection(l === 'event' ? 'evenements' : l)} />
           </div>
         </header>
 
         <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8">
           {pageActive === 'tableau' ? (
-            <Accueil nom={nom} utilisateurId={utilisateurId} onVoirActions={() => setPageActive('actions')} />
-          ) : pageActive === 'attribuer' ? (
-            <AttribuerAction />
+            <Accueil nom={nom} utilisateurId={utilisateurId} onVoirActions={() => ouvrirSection('actions')} />
           ) : pageActive === 'semaine' ? (
             <MaSemaine utilisateurId={utilisateurId} nom={nom} />
           ) : pageActive === 'actions' ? (
@@ -114,13 +142,15 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, on
             <Alertes utilisateurId={utilisateurId} />
           ) : pageActive === 'activites' ? (
             <Activite utilisateurId={utilisateurId} />
-          ) : (
-            <div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
-              <Icone nom={pageActive} className="h-10 w-10 text-brh-primary/40" />
-              <h3 className="mt-4 text-lg font-semibold text-brh-primary">{titrePage}</h3>
-              <p className="mt-1 max-w-xs text-sm text-brh-muted">Cette section arrive bientôt. On la construira ensemble dans une prochaine étape.</p>
-            </div>
-          )}
+          ) : pageActive === 'evenements' ? (
+            <EvenementsCadre utilisateurId={utilisateurId} />
+          ) : pageActive === 'performance' ? (
+            <PerformanceCadre />
+          ) : pageActive === 'secretariat' ? (
+            <SecretariatSecretaire utilisateurId={utilisateurId} />
+          ) : pageActive === 'documentation' ? (
+            <Documentation utilisateurId={utilisateurId} />
+          ) : null}
         </main>
       </div>
     </div>

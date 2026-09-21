@@ -11,3 +11,12 @@ export async function notifierRole(role: string, message: string, lien?: string)
   const lignes = (data ?? []).map((u: any) => ({ user_id: u.id, message, lien: lien ?? null }))
   if (lignes.length) await supabase.from('notifications').insert(lignes)
 }
+
+// Écrit une notification pour tout le monde (sauf, si précisé, une personne — ex. l'auteur)
+export async function notifierTous(message: string, lien?: string, saufId?: string) {
+  const { data } = await supabase.from('users').select('id')
+  const lignes = (data ?? [])
+    .filter((u: any) => u.id !== saufId)
+    .map((u: any) => ({ user_id: u.id, message, lien: lien ?? null }))
+  if (lignes.length) await supabase.from('notifications').insert(lignes)
+}
