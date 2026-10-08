@@ -41,7 +41,8 @@ export function RapportTrimestriel({ utilisateurId }: { utilisateurId?: string }
     setRapports((rRes.data ?? []) as Rapport[])
     const users = (uRes.data ?? []) as any[]
     setNoms(Object.fromEntries(users.map((u) => [u.id, u.nom])))
-    setCadres(users.filter((u) => u.role === 'cadre').map((u) => ({ id: u.id, nom: u.nom })))
+    // Destinataires du rapport : les cadres et la secrétaire
+    setCadres(users.filter((u) => u.role === 'cadre' || u.role === 'secretaire').map((u) => ({ id: u.id, nom: u.nom })))
     setChargement(false)
   }, [])
   useEffect(() => { charger() }, [charger])
@@ -55,6 +56,7 @@ export function RapportTrimestriel({ utilisateurId }: { utilisateurId?: string }
     setBusy(false)
     if (error) { setMsg('Erreur : ' + error.message); return }
     await notifierRole('cadre', `La direction demande un rapport ${PERIODES[f.periode].label.toLowerCase()} : « ${libelle} ».`, 'rapport')
+    await notifierRole('secretaire', `La direction demande un rapport ${PERIODES[f.periode].label.toLowerCase()} : « ${libelle} ».`, 'rapport')
     setF({ periode: 'trimestriel', libelle: '', echeance: '' }); setOuvert(false)
     await charger()
   }

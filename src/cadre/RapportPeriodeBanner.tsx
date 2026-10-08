@@ -71,7 +71,11 @@ export function RapportPeriodeBanner({ utilisateurId }: { utilisateurId?: string
 
             {!repondu && ouvert && (
               <div className="mt-3 space-y-2 border-t border-brh-secondary/30 pt-3">
-                <textarea value={textes[d.id] ?? ''} onChange={(e) => setTextes((p) => ({ ...p, [d.id]: e.target.value }))} placeholder="Résumé de la période : travaux réalisés, résultats, difficultés, perspectives…" className={champ + ' min-h-[120px] resize-y'} />
+                <div className="flex items-start gap-2 rounded-lg bg-white/70 px-3 py-2 text-xs leading-relaxed text-brh-text/80">
+                  <svg viewBox="0 0 24 24" className="mt-0.5 h-4 w-4 shrink-0 text-brh-secondary" fill="none" stroke="currentColor" strokeWidth="1.9"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>
+                  <span>Allez à <b>l'essentiel de l'essentiel</b> : vos résultats clés du trimestre, en quelques lignes. Rédigez-le <b>comme vous le souhaitez</b> — pas de format imposé.</span>
+                </div>
+                <textarea value={textes[d.id] ?? ''} onChange={(e) => setTextes((p) => ({ ...p, [d.id]: e.target.value }))} placeholder="En quelques lignes : ce qui a été accompli, les points importants, ce qui reste à faire…" className={champ + ' min-h-[130px] resize-y'} />
                 <div className="flex justify-end">
                   <button onClick={() => envoyer(d)} disabled={busy === d.id || (textes[d.id] ?? '').trim() === ''} className="rounded-lg bg-brh-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-brh-deep disabled:opacity-50">{busy === d.id ? 'Envoi…' : 'Envoyer à la direction'}</button>
                 </div>
