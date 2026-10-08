@@ -56,7 +56,6 @@ const MENU_SECRETAIRE = [
   { id: 'evenements', label: "Événement de l'UIF" },
   { id: 'reunions', label: 'Réunions' },
   { id: 'secretariat', label: 'Secrétariat' },
-  { id: 'veille', label: 'Veille UIF' },
   { id: 'documentation', label: 'Documentation' },
 ]
 

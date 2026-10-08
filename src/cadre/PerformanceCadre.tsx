@@ -59,7 +59,7 @@ export function PerformanceCadre() {
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-[56px] font-extrabold leading-none tracking-tight" style={serif}>{globale}<span className="align-top text-xl font-bold text-brh-gold-light">%</span></span>
               <span className="mt-2.5 h-px w-9 bg-brh-gold-light/60" />
-              <span className="mt-2 text-[9.5px] font-semibold uppercase tracking-[0.28em] text-brh-gold-light">Avancement de l'Unité</span>
+              <span className="mt-2 whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.26em] text-brh-gold-light">Avancement</span>
             </div>
           </div>
           <div className="flex-1">

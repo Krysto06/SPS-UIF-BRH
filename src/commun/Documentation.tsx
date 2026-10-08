@@ -61,6 +61,12 @@ export function Documentation({ utilisateurId, peutGerer = false }: { utilisateu
     await supabase.from('documents').delete().eq('id', id)
     await charger()
   }
+  async function modifierLien(d: Doc) {
+    const saisi = window.prompt(`Lien du document « ${d.titre} » (colle l'adresse du fichier ou de la page) :`, d.url ?? '')
+    if (saisi === null) return
+    await supabase.from('documents').update({ url: saisi.trim() || null }).eq('id', d.id)
+    await charger()
+  }
 
   const categories = ['Tout', ...CATEGORIES.filter((c) => docs.some((d) => (d.categorie ?? 'Autre') === c))]
   const visibles = filtre === 'Tout' ? docs : docs.filter((d) => (d.categorie ?? 'Autre') === filtre)
@@ -126,6 +132,7 @@ export function Documentation({ utilisateurId, peutGerer = false }: { utilisateu
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ background: `${ty.couleur}14`, color: ty.couleur }}><IconeType type={d.type} /></span>
                     <div className="flex items-center gap-1.5">
                       <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: `${ty.couleur}14`, color: ty.couleur }}>{ty.label}</span>
+                      {peutGerer && <button onClick={() => modifierLien(d)} title="Modifier le lien" className="rounded-md p-1 text-brh-muted opacity-0 transition hover:bg-brh-primary/10 hover:text-brh-primary group-hover:opacity-100"><svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></button>}
                       {peutGerer && <button onClick={() => supprimer(d.id)} title="Supprimer" className="rounded-md p-1 text-brh-muted opacity-0 transition hover:bg-brh-danger/10 hover:text-brh-danger group-hover:opacity-100"><svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /></svg></button>}
                     </div>
                   </div>
