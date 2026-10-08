@@ -146,7 +146,7 @@ export function TableauDeBord({ nom, role = "Membre de l'UIF", utilisateurId, on
           ) : pageActive === 'semaine' ? (
             <MaSemaine utilisateurId={utilisateurId} nom={nom} />
           ) : pageActive === 'actions' ? (
-            <MesActions utilisateurId={utilisateurId} />
+            <MesActions utilisateurId={utilisateurId} nom={nom} />
           ) : pageActive === 'alertes' ? (
             <Alertes utilisateurId={utilisateurId} />
           ) : pageActive === 'activites' ? (

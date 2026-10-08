@@ -97,7 +97,7 @@ function Synthese({ liste }: { liste: ActionEdit[] }) {
 }
 
 // 📋 Page du cadre : suivre et mettre à jour ses propres actions
-export function MesActions({ utilisateurId }: { utilisateurId?: string }) {
+export function MesActions({ utilisateurId, nom }: { utilisateurId?: string; nom?: string }) {
   const [liste, setListe] = useState<ActionEdit[]>([])
   const [chargement, setChargement] = useState(true)
   const [sauvegarde, setSauvegarde] = useState<string | null>(null)
@@ -208,7 +208,7 @@ export function MesActions({ utilisateurId }: { utilisateurId?: string }) {
   if (liste.length === 0) {
     return (
       <div className="mx-auto max-w-3xl space-y-6">
-        <RapportPeriodeBanner utilisateurId={utilisateurId} />
+        <RapportPeriodeBanner utilisateurId={utilisateurId} nom={nom} />
         <p className="rounded-2xl border border-dashed border-brh-border bg-white p-8 text-center text-sm text-brh-muted">
           Aucune action ne vous a encore été attribuée. L'administrateur vous en confiera prochainement.
         </p>
@@ -223,7 +223,7 @@ export function MesActions({ utilisateurId }: { utilisateurId?: string }) {
         <p className="mt-1 text-sm text-brh-muted">Mettez à jour l'avancement de chaque action selon le barème. Vos modifications sont enregistrées dans la base.</p>
       </div>
 
-      <RapportPeriodeBanner utilisateurId={utilisateurId} />
+      <RapportPeriodeBanner utilisateurId={utilisateurId} nom={nom} />
 
       <Synthese liste={liste} />
 

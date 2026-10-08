@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { notifierRole } from '../notifs'
+import { etapeDe } from '../bareme'
+import { chargerLogoBRH, telechargerRapportTrimestrielPdf } from '../pdf'
 import { TitreSection, Avatar } from '../ui'
 
 const serif = { fontFamily: '"Manrope", "Inter", ui-sans-serif, sans-serif' } as const
@@ -8,7 +10,8 @@ const champ = 'w-full rounded-lg border border-brh-border bg-white px-3 py-2 tex
 const flabel = 'mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-brh-muted'
 
 type Demande = { id: string; periode: string; libelle: string; echeance: string | null; statut: string; created_at: string }
-type Rapport = { id: string; demande_id: string; user_id: string | null; contenu: string | null; created_at: string }
+type Rapport = { id: string; demande_id: string; user_id: string | null; contenu: string | null; lien: string | null; pourcentage: number | null; created_at: string }
+type Act = { nom: string; axe: string; pct: number; etape: string }
 
 const PERIODES: Record<string, { label: string; cls: string }> = {
   mensuel: { label: 'Mensuel', cls: 'bg-blue-50 text-blue-700' },
@@ -24,6 +27,7 @@ export function RapportTrimestriel({ utilisateurId }: { utilisateurId?: string }
   const [rapports, setRapports] = useState<Rapport[]>([])
   const [cadres, setCadres] = useState<{ id: string; nom: string }[]>([])
   const [noms, setNoms] = useState<Record<string, string>>({})
+  const [actionsParUser, setActionsParUser] = useState<Record<string, Act[]>>({})
   const [chargement, setChargement] = useState(true)
   const [ouvert, setOuvert] = useState(false)
   const [f, setF] = useState({ periode: 'trimestriel', libelle: '', echeance: '' })
@@ -32,10 +36,11 @@ export function RapportTrimestriel({ utilisateurId }: { utilisateurId?: string }
   const [deplie, setDeplie] = useState<string | null>(null)
 
   const charger = useCallback(async () => {
-    const [dRes, rRes, uRes] = await Promise.all([
+    const [dRes, rRes, uRes, aRes] = await Promise.all([
       supabase.from('demandes_rapport').select('*').order('created_at', { ascending: false }),
       supabase.from('rapports_periode').select('*').order('created_at', { ascending: true }),
       supabase.from('users').select('id, nom, role'),
+      supabase.from('actions').select('nom, pourcentage, user_id, cadres_strategiques(nom)'),
     ])
     setDemandes((dRes.data ?? []) as Demande[])
     setRapports((rRes.data ?? []) as Rapport[])
@@ -43,9 +48,29 @@ export function RapportTrimestriel({ utilisateurId }: { utilisateurId?: string }
     setNoms(Object.fromEntries(users.map((u) => [u.id, u.nom])))
     // Destinataires du rapport : les cadres et la secrétaire
     setCadres(users.filter((u) => u.role === 'cadre' || u.role === 'secretaire').map((u) => ({ id: u.id, nom: u.nom })))
+    const parUser: Record<string, Act[]> = {}
+    ;(aRes.data ?? []).forEach((a: any) => {
+      if (!a.user_id) return
+      ;(parUser[a.user_id] ??= []).push({ nom: a.nom, axe: a.cadres_strategiques?.nom ?? '—', pct: a.pourcentage ?? 0, etape: etapeDe(a.pourcentage ?? 0).label })
+    })
+    setActionsParUser(parUser)
     setChargement(false)
   }, [])
   useEffect(() => { charger() }, [charger])
+
+  async function telechargerPdf(d: Demande, r: Rapport) {
+    const logo = await chargerLogoBRH()
+    telechargerRapportTrimestrielPdf({
+      cadre: noms[r.user_id ?? ''] ?? 'Cadre',
+      periode: d.libelle,
+      emisLe: frDate(r.created_at.slice(0, 10)),
+      pourcentage: r.pourcentage ?? 0,
+      actions: actionsParUser[r.user_id ?? ''] ?? [],
+      note: r.contenu ?? '',
+      lien: r.lien ?? '',
+      logo,
+    })
+  }
 
   async function demander() {
     const libelle = f.libelle.trim() || PERIODES[f.periode].label + ' — ' + new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
@@ -141,11 +166,18 @@ export function RapportTrimestriel({ utilisateurId }: { utilisateurId?: string }
                       <div className="mt-3 space-y-3 pb-1">
                         {reps.length === 0 ? <p className="text-sm text-brh-muted">Aucun rapport reçu pour le moment.</p> : reps.map((r) => (
                           <div key={r.id} className="rounded-xl border border-brh-border bg-brh-bg/40 p-3">
-                            <div className="flex items-center gap-2.5">
-                              <Avatar nom={noms[r.user_id ?? ''] ?? '?'} size={30} />
-                              <div><p className="text-sm font-semibold text-brh-text">{noms[r.user_id ?? ''] ?? '—'}</p><p className="text-[11px] text-brh-muted">Envoyé le {frDate(r.created_at.slice(0, 10))}</p></div>
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="flex items-center gap-2.5">
+                                <Avatar nom={noms[r.user_id ?? ''] ?? '?'} size={30} />
+                                <div><p className="text-sm font-semibold text-brh-text">{noms[r.user_id ?? ''] ?? '—'}</p><p className="text-[11px] text-brh-muted">Envoyé le {frDate(r.created_at.slice(0, 10))}</p></div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {r.pourcentage !== null && <span className="rounded-full bg-brh-primary/5 px-2.5 py-1 text-[11px] font-bold text-brh-primary">{r.pourcentage}%</span>}
+                                {r.lien && <a href={/^https?:\/\//i.test(r.lien) ? r.lien : 'https://' + r.lien} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-lg border border-brh-border bg-white px-2.5 py-1.5 text-[11px] font-semibold text-brh-primary transition hover:bg-brh-bg">Document<svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17 17 7M8 7h9v9" /></svg></a>}
+                                <button onClick={() => telechargerPdf(d, r)} className="inline-flex items-center gap-1 rounded-lg border border-brh-border bg-white px-2.5 py-1.5 text-[11px] font-semibold text-brh-primary transition hover:bg-brh-bg"><svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>PDF</button>
+                              </div>
                             </div>
-                            <p className="mt-2 whitespace-pre-wrap text-sm text-brh-text/85">{r.contenu || <span className="text-brh-muted">(vide)</span>}</p>
+                            {r.contenu && <p className="mt-2 whitespace-pre-wrap text-sm text-brh-text/85">{r.contenu}</p>}
                           </div>
                         ))}
                         {/* cadres n'ayant pas répondu */}
