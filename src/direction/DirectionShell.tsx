@@ -12,6 +12,7 @@ import { DirectionPerformance } from './DirectionPerformance'
 import { Documentation } from '../commun/Documentation'
 import { VeilleUIF } from '../commun/VeilleUIF'
 import { Reunions } from '../commun/Reunions'
+import { RapportTrimestriel } from '../commun/RapportTrimestriel'
 
 type Props = { nom: string; utilisateurId?: string; onDeconnexion: () => void }
 
@@ -20,6 +21,7 @@ const MENU = [
   { id: 'tableau', label: 'Tableau de bord' },
   { id: 'semaine', label: 'Ma semaine' },
   { id: 'actions', label: 'Mes actions du trimestre' },
+  { id: 'rapport', label: 'Rapport trimestriel' },
   { id: 'activite', label: 'Activité' },
   { id: 'secretariat', label: 'Secrétariat' },
   { id: 'event', label: "Événement de l'UIF" },
@@ -30,7 +32,7 @@ const MENU = [
 ]
 // Correspondance section → liens de notification (pastille sur la partie)
 const LIENS: Record<string, string[]> = {
-  tableau: ['alertes', 'tableau'], semaine: ['semaine'], actions: ['actions'],
+  tableau: ['alertes', 'tableau'], semaine: ['semaine'], actions: ['actions'], rapport: ['rapport'],
   activite: ['activites'], secretariat: ['secretariat'], event: ['event'],
   reunions: ['reunions'], veille: ['veille'], documentation: ['documentation'],
 }
@@ -41,6 +43,7 @@ function Icone({ nom }: { nom: string }) {
     case 'tableau': return (<svg {...c}><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>)
     case 'semaine': return (<svg {...c}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>)
     case 'actions': return (<svg {...c}><rect x="8" y="2" width="8" height="4" rx="1" /><path d="M9 4H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2" /><path d="m9 14 2 2 4-4" /></svg>)
+    case 'rapport': return (<svg {...c}><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 13v4M12 10v7M16 14v3" /></svg>)
     case 'activite': return (<svg {...c}><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>)
     case 'secretariat': return (<svg {...c}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" /><path d="M14 2v6h6" /><path d="M9 13h6M9 17h4" /></svg>)
     case 'event': return (<svg {...c}><path d="M12 2.5l2.7 5.6 6.1.5-4.6 4 1.4 6-5.6-3.3-5.6 3.3 1.4-6-4.6-4 6.1-.5z" /></svg>)
@@ -131,7 +134,7 @@ export function DirectionShell({ nom, utilisateurId, onDeconnexion }: Props) {
           <div className="flex items-center gap-2">
             <EnteteInfos />
             <Cloche utilisateurId={utilisateurId} onNaviguer={(l) => {
-              const map: Record<string, string> = { activites: 'activite', alertes: 'tableau', semaine: 'semaine', secretariat: 'secretariat', event: 'event', actions: 'actions', reunions: 'reunions', veille: 'veille', documentation: 'documentation', tableau: 'tableau' }
+              const map: Record<string, string> = { activites: 'activite', alertes: 'tableau', semaine: 'semaine', secretariat: 'secretariat', event: 'event', actions: 'actions', rapport: 'rapport', reunions: 'reunions', veille: 'veille', documentation: 'documentation', tableau: 'tableau' }
               ouvrirSection(map[l] ?? 'tableau')
             }} />
           </div>
@@ -141,6 +144,7 @@ export function DirectionShell({ nom, utilisateurId, onDeconnexion }: Props) {
           {pageActive === 'tableau' ? <DirectionAccueil nom={nom} utilisateurId={utilisateurId} />
             : pageActive === 'semaine' ? <DirectionSemaine />
             : pageActive === 'actions' ? <DirectionActions />
+            : pageActive === 'rapport' ? <RapportTrimestriel utilisateurId={utilisateurId} />
             : pageActive === 'activite' ? <DirectionActivite />
             : pageActive === 'secretariat' ? <DirectionSecretariat utilisateurId={utilisateurId} />
             : pageActive === 'event' ? <DirectionEvenements />

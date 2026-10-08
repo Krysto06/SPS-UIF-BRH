@@ -61,7 +61,7 @@ const MENU_SECRETAIRE = [
 
 // Correspondance section → liens de notification (pour la pastille sur la partie)
 const LIENS: Record<string, string[]> = {
-  semaine: ['semaine'], actions: ['actions'], alertes: ['alertes'], activites: ['activites'],
+  semaine: ['semaine'], actions: ['actions', 'rapport'], alertes: ['alertes'], activites: ['activites'],
   evenements: ['event'], reunions: ['reunions'], secretariat: ['secretariat'],
   veille: ['veille'], documentation: ['documentation'],
 }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
 import { BAREME, etapeDe, etapeCls, couleurPct } from '../bareme'
 import { chargerSousActions, ajouterSousAction, basculerSousAction, supprimerSousAction, grouper, type SousAction } from '../sousActions'
+import { RapportPeriodeBanner } from './RapportPeriodeBanner'
 
 const champ =
   'w-full rounded-lg border border-brh-border bg-white px-4 py-2.5 text-sm text-brh-text outline-none transition placeholder:text-brh-muted/60 focus:border-brh-primary focus:ring-4 focus:ring-brh-primary/10'
@@ -206,7 +207,8 @@ export function MesActions({ utilisateurId }: { utilisateurId?: string }) {
 
   if (liste.length === 0) {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-3xl space-y-6">
+        <RapportPeriodeBanner utilisateurId={utilisateurId} />
         <p className="rounded-2xl border border-dashed border-brh-border bg-white p-8 text-center text-sm text-brh-muted">
           Aucune action ne vous a encore été attribuée. L'administrateur vous en confiera prochainement.
         </p>
@@ -220,6 +222,8 @@ export function MesActions({ utilisateurId }: { utilisateurId?: string }) {
         <h1 className="text-2xl font-bold text-brh-primary" style={serif}>Mes actions du trimestre</h1>
         <p className="mt-1 text-sm text-brh-muted">Mettez à jour l'avancement de chaque action selon le barème. Vos modifications sont enregistrées dans la base.</p>
       </div>
+
+      <RapportPeriodeBanner utilisateurId={utilisateurId} />
 
       <Synthese liste={liste} />
 
