@@ -38,7 +38,7 @@ export function Logo({ size = 40 }: { size?: number }) {
   }
   return (
     <div className="flex shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1.5 shadow-sm" style={{ height: size, width: size }}>
-      <img src="/logo-brh.jpg" alt="BRH" className="h-full w-full object-contain" onError={() => setCassee(true)} />
+      <img src="/logo-brh.png" alt="BRH" className="h-full w-full object-contain" onError={() => setCassee(true)} />
     </div>
   )
 }
