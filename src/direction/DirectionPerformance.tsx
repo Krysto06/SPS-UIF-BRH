@@ -74,11 +74,14 @@ export function DirectionPerformance() {
             <svg width="196" height="196" viewBox="0 0 196 196" className="absolute inset-0">
               <circle cx={98 + R * Math.cos((-90 + 3.6 * globale) * Math.PI / 180)} cy={98 + R * Math.sin((-90 + 3.6 * globale) * Math.PI / 180)} r="5.5" fill="#fff" stroke="#C9A227" strokeWidth="1.5" />
             </svg>
-            {/* centre — chiffre + label à l'intérieur */}
+            {/* centre — chiffre + label sur deux lignes nettes */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-[56px] font-extrabold leading-none tracking-tight" style={serif}>{globale}<span className="align-top text-xl font-bold text-brh-gold-light">%</span></span>
               <span className="mt-2.5 h-px w-9 bg-brh-gold-light/60" />
-              <span className="mt-2 text-[9.5px] font-semibold uppercase tracking-[0.28em] text-brh-gold-light">Performance globale</span>
+              <span className="mt-2 flex flex-col items-center gap-0.5 text-center text-[9.5px] font-semibold uppercase leading-none tracking-[0.22em] text-brh-gold-light">
+                <span className="pl-[0.22em]">Performance</span>
+                <span className="pl-[0.22em]">globale</span>
+              </span>
             </div>
           </div>
           {/* Repères */}
