@@ -121,7 +121,7 @@ export function RapportTrimestriel({ utilisateurId }: { utilisateurId?: string }
           <div className="grid gap-4 p-5 sm:grid-cols-2">
             <div><label className={flabel}>Période</label><select value={f.periode} onChange={(e) => setF({ ...f, periode: e.target.value })} className={champ}>{Object.entries(PERIODES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></div>
             <div><label className={flabel}>Échéance (optionnel)</label><input type="date" value={f.echeance} onChange={(e) => setF({ ...f, echeance: e.target.value })} className={champ} /></div>
-            <div className="sm:col-span-2"><label className={flabel}>Intitulé</label><input value={f.libelle} onChange={(e) => setF({ ...f, libelle: e.target.value })} placeholder="Ex. : Rapport du Trimestre 2 · 2026–2027" className={champ} /></div>
+            <div className="sm:col-span-2"><label className={flabel}>Intitulé</label><input value={f.libelle} onChange={(e) => setF({ ...f, libelle: e.target.value })} placeholder="Ex. : Rapport du trimestre en cours" className={champ} /></div>
             {msg && <p className="sm:col-span-2 rounded-lg bg-brh-danger/10 px-3 py-2 text-sm text-brh-danger">{msg}</p>}
             <div className="flex justify-end sm:col-span-2"><button onClick={demander} disabled={busy} className="rounded-lg bg-brh-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-brh-deep disabled:opacity-60">{busy ? 'Envoi…' : 'Demander à tous les cadres'}</button></div>
           </div>

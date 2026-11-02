@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
 import { couleurPct, couleurPersonne } from '../bareme'
-import { Avatar, TitreSection } from '../ui'
+import { Avatar, TitreSection, TRIMESTRE } from '../ui'
 
 const serif = { fontFamily: '"Manrope", "Inter", ui-sans-serif, sans-serif' } as const
 
@@ -86,7 +86,7 @@ export function DirectionPerformance() {
           </div>
           {/* Repères */}
           <div className="flex-1">
-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-brh-gold-light">Unité d'Inclusion Financière · Trimestre 2</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-brh-gold-light">Unité d'Inclusion Financière · {TRIMESTRE}</p>
             <h1 className="mt-2 text-[26px] font-bold leading-tight" style={serif}>Tableau de performance</h1>
             <p className="mt-1.5 max-w-md text-sm leading-relaxed text-white/70">Avancement consolidé de toutes les actions du trimestre, membre par membre et par axe stratégique.</p>
             <div className="mt-5 grid grid-cols-3 gap-3">

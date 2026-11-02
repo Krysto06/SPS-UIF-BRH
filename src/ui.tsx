@@ -7,8 +7,21 @@ const serif = { fontFamily: '"Manrope", "Inter", ui-sans-serif, sans-serif' } as
 // ── Repères temporels partagés (date du jour · année fiscale · trimestre) ──
 const MOIS_LONG = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
 const JOURS_LONG = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi']
-export const ANNEE_FISCALE = '2026–2027'
-export const TRIMESTRE = 'Trimestre 2'
+// Année fiscale BRH (débute en octobre) et trimestre, calculés automatiquement
+function numeroTrimestre(d = new Date()): number {
+  const m = d.getMonth() // 0 = janvier
+  if (m >= 9) return 1        // oct–déc
+  if (m <= 2) return 2        // jan–mars
+  if (m <= 5) return 3        // avr–juin
+  return 4                    // juil–sept
+}
+function anneeFiscale(d = new Date()): string {
+  const y = d.getFullYear(), debut = d.getMonth() >= 9 ? y : y - 1
+  return `${debut}–${debut + 1}`
+}
+export const ANNEE_FISCALE = anneeFiscale()
+export const TRIMESTRE_N = numeroTrimestre()
+export const TRIMESTRE = `Trimestre ${TRIMESTRE_N}`
 export function dateDuJour(): string {
   const d = new Date()
   return `${JOURS_LONG[d.getDay()]} ${d.getDate()} ${MOIS_LONG[d.getMonth()]} ${d.getFullYear()}`

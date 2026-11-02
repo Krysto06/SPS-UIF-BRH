@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
 import { couleurPct, etapeDe, BAREME } from '../bareme'
+import { TRIMESTRE } from '../ui'
 
 const serif = { fontFamily: '"Manrope", "Inter", ui-sans-serif, sans-serif' } as const
 function moyenne(vals: number[]): number { return vals.length === 0 ? 0 : Math.round(vals.reduce((s, v) => s + v, 0) / vals.length) }
@@ -82,7 +83,7 @@ export function PerformanceCadre() {
 
           {/* État */}
           <div className="flex-1 text-center sm:text-left">
-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-brh-gold-light">Unité d'Inclusion Financière · Trimestre 2</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-brh-gold-light">Unité d'Inclusion Financière · {TRIMESTRE}</p>
             <h1 className="mt-2 text-[27px] font-bold leading-tight" style={serif}>Où en est l'Unité</h1>
             <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 backdrop-blur">
               <span className="h-2.5 w-2.5 rounded-full" style={{ background: couleurPct(globale) }} />

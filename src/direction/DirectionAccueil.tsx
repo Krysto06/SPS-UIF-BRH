@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { couleurPersonne } from '../bareme'
 import { notifier } from '../notifs'
-import { Hero, AnneauPerf, Kpi, TitreSection, Avatar } from '../ui'
+import { Hero, AnneauPerf, Kpi, TitreSection, Avatar, TRIMESTRE } from '../ui'
 
 type Cadre = { id: string; nom: string }
 type Membre = { id: string; nom: string; role: string }
@@ -107,7 +107,7 @@ export function DirectionAccueil({ nom }: { nom: string; utilisateurId?: string 
 
   return (
     <div className="space-y-6">
-      <Hero salutation={salut} nom={nom} eyebrow="Unité d'Inclusion Financière · Trimestre 2"
+      <Hero salutation={salut} nom={nom} eyebrow={`Unité d'Inclusion Financière · ${TRIMESTRE}`}
         right={<AnneauPerf value={moyenneEquipe} titre="Performance de l'Unité" sousTitre="Avancement consolidé de toutes les actions du trimestre." />} />
 
       {/* KPIs */}
