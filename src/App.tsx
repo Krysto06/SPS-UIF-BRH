@@ -7,21 +7,20 @@ import { supabase } from './supabase'
 
 type Utilisateur = { id: string; nom: string; role: string | null }
 
-const CODE_PAR_DEFAUT = 'BRH2026'
-
 const champ =
   'w-full rounded-lg border border-brh-border bg-brh-bg/40 px-4 py-3 text-sm text-brh-text outline-none transition placeholder:text-brh-muted/60 focus:border-brh-primary focus:bg-white focus:ring-4 focus:ring-brh-primary/10'
 const bouton =
-  'w-full rounded-lg bg-brh-primary px-6 py-3 text-sm font-semibold tracking-wide text-white shadow-lg shadow-brh-primary/20 transition hover:bg-brh-deep hover:shadow-xl active:scale-[.99]'
+  'w-full rounded-lg bg-brh-primary px-6 py-3 text-sm font-semibold tracking-wide text-white shadow-lg shadow-brh-primary/20 transition hover:bg-brh-deep hover:shadow-xl active:scale-[.99] disabled:opacity-60'
 const label = 'mb-2 block text-xs font-semibold uppercase tracking-wide text-brh-muted'
 
 function App() {
-  const [etape, setEtape] = useState<'connexion' | 'nouveauCode' | 'accueil' | 'tableauDeBord'>('connexion')
+  const [etape, setEtape] = useState<'connexion' | 'code' | 'tableauDeBord'>('connexion')
   const [nom, setNom] = useState('')
+  const [premiereFois, setPremiereFois] = useState(false)
   const [code, setCode] = useState('')
-  const [nouveauCode, setNouveauCode] = useState('')
   const [confirmation, setConfirmation] = useState('')
   const [erreur, setErreur] = useState('')
+  const [occupe, setOccupe] = useState(false)
 
   // 🔎 Connexion à la base + lecture des utilisateurs
   const [utilisateurs, setUtilisateurs] = useState<Utilisateur[]>([])
@@ -34,27 +33,53 @@ function App() {
     })
   }, [])
 
-  function seConnecter(e: FormEvent) {
+  const utilisateur = utilisateurs.find((u) => u.nom === nom)
+
+  // Étape 1 : choisir son nom → vérifier s'il a déjà un code
+  async function choisirNom(e: FormEvent) {
     e.preventDefault()
     setErreur('')
     if (nom.trim() === '') { setErreur('Veuillez sélectionner votre nom.'); return }
-    if (code === CODE_PAR_DEFAUT) { setEtape('nouveauCode') } else { setErreur("Code d'accès incorrect.") }
+    const u = utilisateurs.find((x) => x.nom === nom)
+    if (!u) { setErreur('Utilisateur introuvable.'); return }
+    setOccupe(true)
+    const { data, error } = await supabase.rpc('a_un_pin', { p_user_id: u.id })
+    setOccupe(false)
+    if (error) { setErreur('Erreur de connexion : ' + error.message); return }
+    setPremiereFois(!data)
+    setCode(''); setConfirmation('')
+    setEtape('code')
   }
 
-  function definirNouveauCode(e: FormEvent) {
+  // Étape 2 : saisir (ou définir) son code à 6 chiffres
+  async function validerCode(e: FormEvent) {
     e.preventDefault()
     setErreur('')
-    if (nouveauCode.length < 4) { setErreur('Le nouveau code doit contenir au moins 4 caractères.'); return }
-    if (nouveauCode !== confirmation) { setErreur('Les deux codes ne correspondent pas.'); return }
-    setEtape('accueil')
+    if (!utilisateur) { setErreur('Session expirée, recommencez.'); setEtape('connexion'); return }
+    if (!/^[0-9]{6}$/.test(code)) { setErreur('Le code doit contenir 6 chiffres.'); return }
+
+    setOccupe(true)
+    if (premiereFois) {
+      if (code !== confirmation) { setOccupe(false); setErreur('Les deux codes ne correspondent pas.'); return }
+      const { data, error } = await supabase.rpc('definir_pin_initial', { p_user_id: utilisateur.id, p_pin: code })
+      setOccupe(false)
+      if (error) { setErreur('Erreur : ' + error.message); return }
+      if (!data) { setErreur('Impossible de définir le code. Réessayez.'); return }
+      setEtape('tableauDeBord')
+    } else {
+      const { data, error } = await supabase.rpc('verifier_pin', { p_user_id: utilisateur.id, p_pin: code })
+      setOccupe(false)
+      if (error) { setErreur('Erreur : ' + error.message); return }
+      if (!data) { setErreur('Code incorrect.'); return }
+      setEtape('tableauDeBord')
+    }
   }
 
   function seDeconnecter() {
-    setEtape('connexion'); setNom(''); setCode(''); setNouveauCode(''); setConfirmation(''); setErreur('')
+    setEtape('connexion'); setNom(''); setCode(''); setConfirmation(''); setErreur(''); setPremiereFois(false)
   }
 
   if (etape === 'tableauDeBord') {
-    const utilisateur = utilisateurs.find((u) => u.nom === nom)
     if (utilisateur?.role === 'direction') {
       return <DirectionShell nom={nom} utilisateurId={utilisateur?.id} onDeconnexion={seDeconnecter} />
     }
@@ -112,7 +137,7 @@ function App() {
           </div>
 
           {etape === 'connexion' && (
-            <form onSubmit={seConnecter} className="space-y-5">
+            <form onSubmit={choisirNom} className="space-y-5">
               <div className="text-center">
                 <h2 className="text-2xl font-bold text-brh-primary">Connexion</h2>
                 <p className="mt-1 text-sm text-brh-muted">Sélectionnez votre nom pour accéder à votre espace.</p>
@@ -126,45 +151,36 @@ function App() {
                   {utilisateurs.map((u) => (<option key={u.nom} value={u.nom}>{u.nom}</option>))}
                 </select>
               </div>
-              <div>
-                <label className={label}>Code d'accès</label>
-                <input type="password" value={code} onChange={(e) => setCode(e.target.value)} placeholder="••••••••" className={champ} />
-              </div>
               {erreur && (<p className="rounded-lg bg-brh-danger/10 px-3 py-2 text-sm text-brh-danger">{erreur}</p>)}
-              <button type="submit" className={bouton}>Se connecter</button>
-              <p className="text-center text-xs text-brh-muted">Première connexion ? Utilisez le code fourni par l'administrateur.</p>
+              <button type="submit" disabled={occupe} className={bouton}>{occupe ? 'Vérification…' : 'Continuer'}</button>
+              <p className="text-center text-xs text-brh-muted">Première connexion ? Vous choisirez votre code à 6 chiffres à l'étape suivante.</p>
             </form>
           )}
 
-          {etape === 'nouveauCode' && (
-            <form onSubmit={definirNouveauCode} className="space-y-5">
+          {etape === 'code' && (
+            <form onSubmit={validerCode} className="space-y-5">
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-brh-primary">Choisissez votre code</h2>
-                <p className="mt-1 text-sm text-brh-muted">Définissez un nouveau code personnel.</p>
+                <h2 className="text-2xl font-bold text-brh-primary">{premiereFois ? 'Choisissez votre code' : 'Bonjour, ' + nom.split(' ')[0]}</h2>
+                <p className="mt-1 text-sm text-brh-muted">{premiereFois ? 'Première connexion : définissez un code personnel à 6 chiffres.' : 'Entrez votre code à 6 chiffres.'}</p>
               </div>
               <div>
-                <label className={label}>Nouveau code</label>
-                <input type="password" value={nouveauCode} onChange={(e) => setNouveauCode(e.target.value)} placeholder="Au moins 4 caractères" className={champ} />
+                <label className={label}>Code à 6 chiffres</label>
+                <input type="password" inputMode="numeric" autoComplete="off" maxLength={6}
+                  value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="••••••" className={champ + ' text-center text-lg tracking-[0.5em]'} autoFocus />
               </div>
-              <div>
-                <label className={label}>Confirmer le code</label>
-                <input type="password" value={confirmation} onChange={(e) => setConfirmation(e.target.value)} placeholder="Retapez le nouveau code" className={champ} />
-              </div>
+              {premiereFois && (
+                <div>
+                  <label className={label}>Confirmez le code</label>
+                  <input type="password" inputMode="numeric" autoComplete="off" maxLength={6}
+                    value={confirmation} onChange={(e) => setConfirmation(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="••••••" className={champ + ' text-center text-lg tracking-[0.5em]'} />
+                </div>
+              )}
               {erreur && (<p className="rounded-lg bg-brh-danger/10 px-3 py-2 text-sm text-brh-danger">{erreur}</p>)}
-              <button type="submit" className={bouton}>Valider mon code</button>
+              <button type="submit" disabled={occupe} className={bouton}>{occupe ? 'Patientez…' : premiereFois ? 'Valider mon code' : 'Se connecter'}</button>
+              <button type="button" onClick={seDeconnecter} className="w-full text-center text-xs text-brh-muted hover:text-brh-text">← Changer de nom</button>
             </form>
-          )}
-
-          {etape === 'accueil' && (
-            <div className="space-y-5 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brh-success/10 text-2xl">✅</div>
-              <div>
-                <h2 className="text-2xl font-bold text-brh-primary">Bienvenue, {nom}</h2>
-                <p className="mt-1 text-sm text-brh-muted">Vous êtes connecté(e) au Système de Pilotage Stratégique interne.</p>
-              </div>
-              <button onClick={() => setEtape('tableauDeBord')} className={bouton}>Accéder à mon tableau de bord</button>
-              <button onClick={seDeconnecter} className="w-full rounded-lg border border-brh-border px-6 py-3 text-sm font-medium text-brh-text transition hover:bg-brh-bg">Se déconnecter</button>
-            </div>
           )}
         </div>
       </div>
