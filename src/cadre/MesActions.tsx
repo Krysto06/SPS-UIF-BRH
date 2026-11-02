@@ -25,6 +25,8 @@ type ActionEdit = {
   statut: string
   pourcentage: number
   commentaire: string
+  description: string
+  livrable: string
   enregistre: 'ok' | 'erreur' | null
 }
 
@@ -108,7 +110,7 @@ export function MesActions({ utilisateurId, nom }: { utilisateurId?: string; nom
     if (!utilisateurId) { setChargement(false); return }
     supabase
       .from('actions')
-      .select('id, nom, statut, pourcentage, echeance, commentaire, cadres_strategiques(nom)')
+      .select('id, nom, statut, pourcentage, echeance, commentaire, description, livrable, cadres_strategiques(nom)')
       .eq('user_id', utilisateurId)
       .order('echeance')
       .then(({ data }) => {
@@ -121,6 +123,8 @@ export function MesActions({ utilisateurId, nom }: { utilisateurId?: string; nom
           statut: a.statut ?? 'en_attente',
           pourcentage: a.pourcentage ?? 0,
           commentaire: a.commentaire ?? '',
+          description: a.description ?? '',
+          livrable: a.livrable ?? '',
           enregistre: null as 'ok' | 'erreur' | null,
         }))
         setListe(l)
@@ -238,6 +242,8 @@ export function MesActions({ utilisateurId, nom }: { utilisateurId?: string; nom
                 <div className="min-w-0">
                   <p className="font-semibold text-brh-text">{a.nom}</p>
                   <p className="mt-0.5 text-xs text-brh-muted">{a.axe} · Échéance : {a.echeanceFr}</p>
+                  {a.description && <p className="mt-2 text-sm text-brh-text/75">{a.description}</p>}
+                  {a.livrable && <p className="mt-1 text-xs text-brh-muted"><span className="font-semibold">Livrable attendu :</span> {a.livrable}</p>}
                 </div>
                 <div className="flex flex-wrap items-center justify-end gap-2">
                   {enRetard && <span className="rounded-full bg-brh-danger/10 px-2.5 py-0.5 text-[11px] font-medium text-brh-danger">En retard</span>}

@@ -4,8 +4,8 @@ import { Logo, EnteteInfos } from '../ui'
 import { useNotifsSections } from '../useNotifs'
 import { DirectionAccueil } from './DirectionAccueil'
 import { DirectionSemaine } from './DirectionSemaine'
-import { DirectionActions } from './DirectionActions'
 import { DirectionActivite } from './DirectionActivite'
+import { GestionActions } from '../commun/GestionActions'
 import { DirectionSecretariat } from './DirectionSecretariat'
 import { DirectionEvenements } from './DirectionEvenements'
 import { DirectionPerformance } from './DirectionPerformance'
@@ -143,7 +143,7 @@ export function DirectionShell({ nom, utilisateurId, onDeconnexion }: Props) {
         <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8">
           {pageActive === 'tableau' ? <DirectionAccueil nom={nom} utilisateurId={utilisateurId} />
             : pageActive === 'semaine' ? <DirectionSemaine />
-            : pageActive === 'actions' ? <DirectionActions />
+            : pageActive === 'actions' ? <GestionActions />
             : pageActive === 'rapport' ? <RapportTrimestriel utilisateurId={utilisateurId} />
             : pageActive === 'activite' ? <DirectionActivite />
             : pageActive === 'secretariat' ? <DirectionSecretariat utilisateurId={utilisateurId} />

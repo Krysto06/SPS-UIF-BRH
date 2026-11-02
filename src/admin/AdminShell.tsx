@@ -3,12 +3,11 @@ import { Cloche } from '../Notifications'
 import { Logo, EnteteInfos } from '../ui'
 import { useNotifsSections } from '../useNotifs'
 import { DirectionAccueil } from '../direction/DirectionAccueil'
-import { DirectionActions } from '../direction/DirectionActions'
 import { DirectionActivite } from '../direction/DirectionActivite'
 import { DirectionSecretariat } from '../direction/DirectionSecretariat'
 import { DirectionEvenements } from '../direction/DirectionEvenements'
 import { DirectionPerformance } from '../direction/DirectionPerformance'
-import { AttribuerAction } from './AttribuerAction'
+import { GestionActions } from '../commun/GestionActions'
 import { Documentation } from '../commun/Documentation'
 import { VeilleUIF } from '../commun/VeilleUIF'
 import { Reunions } from '../commun/Reunions'
@@ -21,8 +20,7 @@ type Props = { nom: string; utilisateurId?: string; onDeconnexion: () => void }
 // directrice sur l'opérationnel — pas davantage.
 const MENU = [
   { id: 'tableau', label: "Vue d'ensemble" },
-  { id: 'attribuer', label: 'Attribuer une action' },
-  { id: 'actions', label: 'Actions du trimestre' },
+  { id: 'actions', label: 'Gestion des actions' },
   { id: 'rapport', label: 'Rapport trimestriel' },
   { id: 'activite', label: 'Activité' },
   { id: 'event', label: "Événement de l'UIF" },
@@ -33,7 +31,7 @@ const MENU = [
   { id: 'documentation', label: 'Documentation' },
 ]
 const LIENS: Record<string, string[]> = {
-  tableau: ['alertes', 'tableau'], actions: ['actions'], attribuer: ['actions'], rapport: ['rapport'],
+  tableau: ['alertes', 'tableau'], actions: ['actions'], rapport: ['rapport'],
   activite: ['activites'], secretariat: ['secretariat'], event: ['event'],
   reunions: ['reunions'], veille: ['veille'], documentation: ['documentation'],
 }
@@ -130,8 +128,7 @@ export function AdminShell({ nom, utilisateurId, onDeconnexion }: Props) {
 
         <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8">
           {pageActive === 'tableau' ? <DirectionAccueil nom={nom} utilisateurId={utilisateurId} />
-            : pageActive === 'attribuer' ? <AttribuerAction />
-            : pageActive === 'actions' ? <DirectionActions />
+            : pageActive === 'actions' ? <GestionActions />
             : pageActive === 'rapport' ? <RapportTrimestriel utilisateurId={utilisateurId} />
             : pageActive === 'activite' ? <DirectionActivite />
             : pageActive === 'event' ? <DirectionEvenements />
